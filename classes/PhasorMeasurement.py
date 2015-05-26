@@ -82,4 +82,3 @@ class PhasorMeasurement(object):
     angle = property(get_angle, set_angle, del_angle, "angle's docstring")
     source = property(get_source, set_source, del_source, "source's docstring")
     unit = property(get_unit, set_unit, del_unit, "unit's docstring")
-        

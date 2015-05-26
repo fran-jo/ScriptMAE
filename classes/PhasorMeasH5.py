@@ -8,6 +8,7 @@ import itertools
 from numpy import rad2deg,angle
 import os, time
 import h5py as h5
+from data import signal
 
 from classes.PhasorMeasurement import PhasorMeasurement
 
@@ -15,74 +16,82 @@ class PhasorMeasH5(object):
     '''
     classdocs
     '''
-    _signal= []
-    _source= ''
-    _matfile= None
-    _h5file= None
-    _phasor= None
+    signal= None
+    mode= []
+    signaltype= ''
+    source= ''
+    matfile= None
+    h5file= None
+#     phasor= None
 
     def __init__(self, params):
         '''
         Constructor
+        params[0] = nom del fitxer .mat resultant de simulació
+        params[1] = outPath
         '''
-        self._phasor= PhasorMeasurement()
+        self.signal = signal.Signal('complex')
+#         self.phasor= PhasorMeasurement()
 #         print params
-        self._matfile= SimRes(params)
+        self.matfile= SimRes(params[0])
+        # create/open the h5 file and append file
+        dbFolder= params[1].replace('\\','/')
+        os.chdir(dbFolder)
+#         fileName= time.strftime("%H_%M_%S")+ 'SimulationOutputs.h5'
+        fileName= 'SimulationOutputs.h5'
+        self.h5file= h5.File(fileName, 'a')
         
         
     def get_signal(self):
-        return self._signal
+        return self.signal
 
 
     def get_source(self):
-        return self._source
+        return self.source
 
 
     def get_h5file(self):
-        return self._h5file
+        return self.h5file
 
 
     def get_phasor(self):
-        return self._phasor
+        return self.phasor
 
 
     def set_signal(self, realvalue, imagvalue):
-        vr= self._matfile[realvalue]
-        vi= self._matfile[imagvalue]
+        vr= self.matfile[realvalue]
+        vi= self.matfile[imagvalue]
         #calculate phasor from signal
-        self._signal= []
+        self.signal= []
         for r,im in itertools.izip_longest(vr,vi):
-            self._signal.append(complex(r,im)) 
+            self.signal.append(complex(r,im)) 
     #     print rad2deg(angle(phasor[1]))
     ''' TODO: save time either from OpenModelica Results and Dymola result '''
 #         self._phasor.set_time(self._matfile.get_description('Time'))
 
+    def set_mode(self, realvalue):
+        pass
+    
     def set_source(self, value):
-        self._source = value
-
+        self.source = value
 
     def set_h5file(self, value):
-        self._h5file = value
-
+        self.h5file = value
 
     def set_phasor(self, value):
-        self._phasor = value
-
+        self.phasor = value
 
     def del_signal(self):
-        del self._signal
-
+        del self.signal
 
     def del_source(self):
-        del self._source
-        
+        del self.source
 
     def del_h5file(self):
-        del self._h5file
-
+        del self.h5file
 
     def del_phasor(self):
-        del self._phasor
+        del self.phasor
         
     signal = property(get_signal, set_signal, del_signal, "signal's docstring")
     source = property(get_source, set_source, del_source, "source's docstring")
@@ -95,24 +104,24 @@ class PhasorMeasH5(object):
         for fasor in self._signal:
             magnitude.append(abs(fasor));
             phase.append(rad2deg(angle(fasor)))
-        self._phasor.set_angle(phase)
-        self._phasor.set_magnitude(magnitude)
-        self._phasor.set_source(self._source)
-        self._phasor.set_unit(self._source)
+        self.phasor.set_angle(phase)
+        self.phasor.set_magnitude(magnitude)
+        self.phasor.set_source(self._source)
+        self.phasor.set_unit(self._source)
         
-    def save_h5(self, outPath):
-        # create the h5 file and append file
-        dbFolder= outPath.replace('\\','/')
-        os.chdir(dbFolder)
-        fileName= time.strftime("%H_%M_%S")+ 'SimulationOutputs.h5'
-#         fileName= 'SimulationOutputs.h5'
-        self._h5file= h5.File(fileName, 'a')
+    def save_h5(self, _component, _variable):
+        
+        # create group, for each component
+        if not _component in self.h5file:
+            comp= self.h5file.create_group(_component)
         # create datasets
-        samples= len(self._phasor.get_angle())
-        phasorSet= self._h5file.create_dataset(self._phasor.get_source(), (2,samples))
+        samples= len(self.phasor.get_angle())
+        signalSet= comp.create_dataset(_variable, (3, samples))
+#         dset = self.h5file.create_dataset(self._phasor.get_source(), (2,samples))
         # store datasets in file
 #         phasorSet[0,:]= self._phasor.get_time()
-        phasorSet[0,:]= self._phasor.get_magnitude()
-        phasorSet[1,:]= self._phasor.get_angle()
+        signalSet[0,:]= self.signal.get_sampletime()
+        signalSet[1,:]= self.signal.get1stValueSignal()
+        signalSet[2,:]= self.signal.get2ndValueSignal()
         # close file
-        self._h5file.close()
+        self.h5file.close()
