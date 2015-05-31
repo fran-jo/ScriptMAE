@@ -19,7 +19,7 @@ class PhasorMeasH5(object):
     signal= None
     mode= []
     signaltype= ''
-    source= ''
+    unit= ''
     matfile= None
     h5file= None
 #     phasor= None
@@ -46,7 +46,7 @@ class PhasorMeasH5(object):
         return self.signal
 
 
-    def get_source(self):
+    def get_unit(self):
         return self.source
 
 
@@ -72,8 +72,8 @@ class PhasorMeasH5(object):
     def set_mode(self, realvalue):
         pass
     
-    def set_source(self, value):
-        self.source = value
+    def set_unit(self, value):
+        self.unit = value
 
     def set_h5file(self, value):
         self.h5file = value
@@ -84,7 +84,7 @@ class PhasorMeasH5(object):
     def del_signal(self):
         del self.signal
 
-    def del_source(self):
+    def del_unit(self):
         del self.source
 
     def del_h5file(self):
@@ -94,7 +94,7 @@ class PhasorMeasH5(object):
         del self.phasor
         
     signal = property(get_signal, set_signal, del_signal, "signal's docstring")
-    source = property(get_source, set_source, del_source, "source's docstring")
+    source = property(get_unit, set_unit, del_unit, "source's docstring")
     h5file = property(get_h5file, set_h5file, del_h5file, "h5file's docstring")
     phasor = property(get_phasor, set_phasor, del_phasor, "phasor's docstring")
     
@@ -110,7 +110,6 @@ class PhasorMeasH5(object):
         self.phasor.set_unit(self._source)
         
     def save_h5(self, _component, _variable):
-        
         # create group, for each component
         if not _component in self.h5file:
             comp= self.h5file.create_group(_component)

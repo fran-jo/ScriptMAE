@@ -3,23 +3,23 @@ Created on 26 maj 2015
 
 @author: fragom
 '''
-from math import sqrt
-from numpy import arctan2, abs, sin, cos
 
 class Signal(object):
     '''
-    classdocs
+    classdocs, clase base trabaja con complejos
     '''
-
-    sampletime = []
-    signal = []
-    valueType = ''
     
     def __init__(self, _valueType):
         '''
         Constructor
         '''
-        self.value= _valueType
+        ''' oye, convierte las arrays en dictionarios, el key value siempre serà el tiempo, así que
+        self.signal = {(sampletime, real/magnitude)}
+        self.signal = {(sampletime, imaginary/angle)}
+        '''
+        self.sampletime = []
+        self.signal = []
+        self.valueType= _valueType
 
     def append(self, real, imag):
         valor= (real,imag)
@@ -31,11 +31,11 @@ class Signal(object):
 
 
     def set_value(self, value):
-        self.__value = value
+        self.__valueType = value
 
 
     def del_value(self):
-        del self.__value
+        del self.__valueType
         
 
     def get_sampletime(self):
@@ -77,10 +77,24 @@ class Signal(object):
     sampletime = property(get_sampletime, set_sampletime, del_sampletime, "sampletime's docstring")
     signal = property(get_signal, set_signal, del_signal, "signal's docstring")
     value = property(get_value, set_value, del_value, "value's docstring")
-    
+
+from math import sqrt
+from numpy import arctan2, abs, sin, cos
+
+class SignalPMU(Signal):
+    '''
+    classdocs
+    '''
+
+    def __init__(self, params):
+        '''
+        Constructor, clase que trabaja con representacion polar
+        '''
+        Signal.__init__(self, 'complex')
+        
     def complex2Polar(self):
-        polar= Signal('polar')
-        polar.set_sampletime(self.sampletime)
+        polar= SignalPMU('polar')
+        self.set_sampletime(self.sampletime)
         for valor in self.signal:
             magnitude= abs(sqrt(valor[0]^2+ valor[1]^2))
             angle= arctan2(valor[1], valor[0])
@@ -94,4 +108,4 @@ class Signal(object):
             real= valor[0]* cos(valor[1])
             imag= valor[0]* sin(valor[1])
             complecs.append(real, imag)
-        return complecs
+        return complecs  
