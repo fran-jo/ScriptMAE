@@ -27,7 +27,7 @@ class PhasorMeasH5(object):
     def __init__(self, params):
         '''
         Constructor
-        params[0] = nom del fitxer .mat resultant de simulació
+        params[0] = nom del fitxer .mat resultant de simulacio
         params[1] = outPath
         '''
         self.signal = signal.Signal('complex')
@@ -35,8 +35,9 @@ class PhasorMeasH5(object):
 #         print params
         self.matfile= SimRes(params[0])
         # create/open the h5 file and append file
-        dbFolder= params[1].replace('\\','/')
-        os.chdir(dbFolder)
+        if os.name!= 'posix':
+            dbFolder= params[1].replace('\\','/')
+            os.chdir(dbFolder)
 #         fileName= time.strftime("%H_%M_%S")+ 'SimulationOutputs.h5'
         fileName= 'SimulationOutputs.h5'
         self.h5file= h5.File(fileName, 'a')
@@ -110,7 +111,7 @@ class PhasorMeasH5(object):
         self.phasor.set_unit(self._source)
         
     def save_h5(self, _component, _variable):
-        # create group, for each component
+        # create group, for each component, with attribute
         if not _component in self.h5file:
             comp= self.h5file.create_group(_component)
         # create datasets
