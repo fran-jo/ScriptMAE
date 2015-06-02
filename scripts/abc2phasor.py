@@ -12,6 +12,7 @@ def abc2phasor(argv):
     result file, .mat, either from DY or OMC 
     type of signal'''
     ''' TODO: Unify inputs files of MAE and outputs of MEE, should be the same and easy to access '''
+    ''' TODO: Test new implementation of signal / PhasorMeasH5 '''
     #h5pmu= PhasorMeasH5.PhasorMeasH5('C:/Users/fragom/PhD_CIM/Modelica/Models/Results/Dymola/SMIB1L_Group1_Nordic44.mat')
 #     if os.name== 'posix':
 #         print platform.system()

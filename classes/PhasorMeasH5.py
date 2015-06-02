@@ -11,17 +11,17 @@ import h5py as h5
 from data import signal
 
 from classes.PhasorMeasurement import PhasorMeasurement
+from __builtin__ import None
 
 class PhasorMeasH5(object):
     '''
     classdocs
     '''
     signal= None
-    mode= []
-    signaltype= ''
-    unit= ''
     matfile= None
     h5file= None
+    group= None
+    dataset= None
 #     phasor= None
 
     def __init__(self, params):
@@ -30,7 +30,7 @@ class PhasorMeasH5(object):
         params[0] = nom del fitxer .mat resultant de simulacio
         params[1] = outPath
         '''
-        self.signal = signal.Signal('complex')
+        self.signal = signal.SignalPMU('polar')
 #         self.phasor= PhasorMeasurement()
 #         print params
         self.matfile= SimRes(params[0])
@@ -39,48 +39,20 @@ class PhasorMeasH5(object):
             dbFolder= params[1].replace('\\','/')
             os.chdir(dbFolder)
 #         fileName= time.strftime("%H_%M_%S")+ 'SimulationOutputs.h5'
-        fileName= 'SimulationOutputs.h5'
-        self.h5file= h5.File(fileName, 'a')
+        self.fileName= 'SimulationOutputs.h5'
         
         
     def get_signal(self):
         return self.signal
 
-
-    def get_unit(self):
-        return self.source
-
-
     def get_h5file(self):
         return self.h5file
 
-
-    def get_phasor(self):
-        return self.phasor
-
-
-    def set_signal(self, realvalue, imagvalue):
-        vr= self.matfile[realvalue]
-        vi= self.matfile[imagvalue]
-        #calculate phasor from signal
-        self.signal= []
-        for r,im in itertools.izip_longest(vr,vi):
-            self.signal.append(complex(r,im)) 
-    #     print rad2deg(angle(phasor[1]))
-    ''' TODO: save time either from OpenModelica Results and Dymola result '''
-#         self._phasor.set_time(self._matfile.get_description('Time'))
-
-    def set_mode(self, realvalue):
-        pass
-    
-    def set_unit(self, value):
-        self.unit = value
+    def set_signal(self, _signal):
+        self.signal= _signal
 
     def set_h5file(self, value):
         self.h5file = value
-
-    def set_phasor(self, value):
-        self.phasor = value
 
     def del_signal(self):
         del self.signal
@@ -91,13 +63,8 @@ class PhasorMeasH5(object):
     def del_h5file(self):
         del self.h5file
 
-    def del_phasor(self):
-        del self.phasor
-        
     signal = property(get_signal, set_signal, del_signal, "signal's docstring")
-    source = property(get_unit, set_unit, del_unit, "source's docstring")
     h5file = property(get_h5file, set_h5file, del_h5file, "h5file's docstring")
-    phasor = property(get_phasor, set_phasor, del_phasor, "phasor's docstring")
     
     def calc_phasorSignal(self):
         magnitude= []
@@ -105,23 +72,48 @@ class PhasorMeasH5(object):
         for fasor in self._signal:
             magnitude.append(abs(fasor));
             phase.append(rad2deg(angle(fasor)))
-        self.phasor.set_angle(phase)
-        self.phasor.set_magnitude(magnitude)
-        self.phasor.set_source(self._source)
-        self.phasor.set_unit(self._source)
+        self.signal.set_signal(magnitude)
+        self.signal.set_angle(phase)
         
-    def save_h5(self, _component, _variable):
+    def create_h5(self, _bus):
+        self.h5file= h5.File(self.fileName, 'a')
         # create group, for each component, with attribute
-        if not _component in self.h5file:
-            comp= self.h5file.create_group(_component)
-        # create datasets
-        samples= len(self.phasor.get_angle())
-        signalSet= comp.create_dataset(_variable, (3, samples))
-#         dset = self.h5file.create_dataset(self._phasor.get_source(), (2,samples))
+        if not _bus in self.h5file:
+            self.group= self.h5file.create_group(_bus)
+        else:
+            self.group= self.h5file[_bus]
+    
+    def open_h5(self):
+        self.h5file= h5.File(self.fileName, 'r')
+        
+    def save_h5(self, _component, _llistaSenyals):
+        # create datasets, llistaSenyals conté els objects Signal que cal guardar per un component concret
+        if not _component in self.group:
+            self.dataset= self.group.create_dataset(_component, (3, 10000))
+        else:
+            self.dataset= self.group[_component]
+        attr_string= 'polar'
+        self.dataset.attrs['signalType']= attr_string
         # store datasets in file
-#         phasorSet[0,:]= self._phasor.get_time()
-        signalSet[0,:]= self.signal.get_sampletime()
-        signalSet[1,:]= self.signal.get1stValueSignal()
-        signalSet[2,:]= self.signal.get2ndValueSignal()
+        self.dataset[0,:]= self.signal.get_sampletime()
+        fila= 1
+        for senyal in _llistaSenyals:
+            ''' senyals tenen dos components, complex or polar, es guarden valors per parelles '''
+            if isinstance(senyal, signal.Signal):
+                self.dataset[fila,:]= senyal.get_realSignal()
+                fila+= 1
+                self.dataset[fila,:]= senyal.get_imagSignal()
+                fila+= 1
+            if isinstance(senyal, signal.SignalPMU):
+                self.dataset[fila,:]= senyal.get_magSignal()
+                fila+= 1
+                self.dataset[fila,:]= senyal.get_angSignal()
+                fila+= 1
+        # guardar en attributes els noms de les variables dels components
         # close file
         self.h5file.close()
+        
+    def load_h5(self, _bus, _component):
+        # load data into internal dataset
+        self.group= self.h5file[_bus]
+        self.dataset= self.group[_component]
