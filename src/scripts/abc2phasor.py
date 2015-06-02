@@ -16,15 +16,18 @@ def abc2phasor(argv):
     #h5pmu= PhasorMeasH5.PhasorMeasH5('C:/Users/fragom/PhD_CIM/Modelica/Models/Results/Dymola/SMIB1L_Group1_Nordic44.mat')
 #     if os.name== 'posix':
 #         print platform.system()
-    h5pmu= PhasorMeasH5.PhasorMeasH5(sys.argv[1])
+    
+    h5pmu= PhasorMeasH5.PhasorMeasH5(sys.argv[1:])
     #calculate phasor from signal
     h5pmu.set_signal("pwLine4.n.vr","pwLine4.n.vi")
-    h5pmu.set_source('voltage')
+    h5pmu.component= "pwLine4.n"
+    print h5pmu.get_signal().get_complexSignal()
     h5pmu.calc_phasorSignal()
-    print h5pmu.get_phasor().get_magnitude()
-    print h5pmu.get_phasor().get_angle()
-    print h5pmu.get_phasor().get_time()
-    #save meas to h5 file    
+    print h5pmu.get_signal().get_polarSignal()
+    print h5pmu.get_signal().get_magSignal()
+    print h5pmu.get_signal().get_angSignal()
+#     print h5pmu.get_phasor().get_time()
+#     #save meas to h5 file    
     h5pmu.save_h5(sys.argv[2],'pwLine4','pin')
     
 if __name__ == '__main__':
