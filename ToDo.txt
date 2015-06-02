@@ -6,9 +6,4 @@ Create an API to read/write signals.
 	Load (open the .h5 file and load group/attribute/dataset)
 		(functions work with class attributes group/attribute/dataset/signal)
 		
-With classes Signal/SignalPMU and PhasorMeasMat.py
-Create an API to read/write signal
-	Read (from .mat)
-	write (to .h5)
-	Class PhasorMeasMat.py contain class attributes group/attribute/dataset/signal)
-	getter/setter for returning these attributes
+.mat files we use ModelicaRes
