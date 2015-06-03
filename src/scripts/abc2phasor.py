@@ -16,19 +16,18 @@ def abc2phasor(argv):
     #h5pmu= PhasorMeasH5.PhasorMeasH5('C:/Users/fragom/PhD_CIM/Modelica/Models/Results/Dymola/SMIB1L_Group1_Nordic44.mat')
 #     if os.name== 'posix':
 #         print platform.system()
-    
+    ''' Load simulation results from .mat file '''
     h5pmu= PhasorMeasH5.PhasorMeasH5(sys.argv[1:])
     #calculate phasor from signal
-    h5pmu.set_signal("pwLine4.n.vr","pwLine4.n.vi")
-    h5pmu.component= "pwLine4.n"
-    print h5pmu.get_signal().get_complexSignal()
-    h5pmu.calc_phasorSignal()
-    print h5pmu.get_signal().get_polarSignal()
-    print h5pmu.get_signal().get_magSignal()
-    print h5pmu.get_signal().get_angSignal()
+    h5pmu.set_csenyal_cmp("pwLine4.n.vr","pwLine4.n.vi")
+    h5pmu.set_csenyal_pol("pwLine4.n.vr","pwLine4.n.vi")
+#     h5pmu.get_signal().resize()
+    h5pmu.get_csenyal().set_ccomponent("pwLine4.n")
+#     h5pmu.calc_phasorSignal()
 #     print h5pmu.get_phasor().get_time()
-#     #save meas to h5 file    
-    h5pmu.save_h5(sys.argv[2],'pwLine4','pin')
+#     #save meas to h5 file   
+    h5pmu.create_h5('pwLine4')
+    h5pmu.save_h5('V')
     
 if __name__ == '__main__':
     abc2phasor(sys.argv[1:])

@@ -3,79 +3,86 @@ Created on 26 maj 2015
 
 @author: fragom
 '''
+import itertools
 
 class Signal(object):
     '''
     classdocs, clase base trabaja con complejos
     '''
     
-    def __init__(self, _param):
+    def __init__(self):
         '''
         Constructor
         '''
-        ''' oye, convierte las arrays en dictionarios, el key value siempre must be el tiempo, so
-        self.signal = {(real, imaginary)}
-        '''
-        self._sampletime = []
-        self._complexSignal = {}
-        self._valueType= _param
-        self._component= ''
+        self.csamples= 0
+        self.csignal_r = {}
+        self.csignal_i = {}
+        self.ccomponent= ''
 
-    def get_component(self):
-        return self.__component
+    def get_csamples(self):
+        return self.csamples
 
-
-    def set_component(self, value):
-        self.__component = value
-
-
-    def del_component(self):
-        del self.__component
-
-        
-    def get_value(self):
-        return self.__value
-
-
-    def set_value(self, value):
-        self.__valueType = value
-
-
-    def del_value(self):
-        del self.__valueType
-        
-
-    def get_sampletime(self):
-        return self.__sampletime
+    def get_sampleTime(self):
+        ''' returns an array with values of sample/time '''
+        return self.csignal_r.keys()
     
-    def set_sampletime(self, value):
-        self.__sampletime = value
+    def get_csignal_r(self):
+        return self.csignal_r.values()
+
+
+    def get_csignal_i(self):
+        return self.csignal_i.values()
+
+
+    def get_ccomponent(self):
+        return self.ccomponent
+
+
+    def set_csamples(self, _value):
+        ''' _value: input sample/time array '''
+        self.csamples = len(_value)
+
+
+    def set_csignal_r(self, _samples, _valueR):
+        ''' create dictionary with real part of the complex signal
+        _samples:
+        _valueR: '''
+        self.csignal_r = dict(zip(_samples,_valueR))
+        self.csamples= len(_samples)
+
+
+    def set_csignal_i(self, _samples, _valueI):
+        ''' create dictionary with imaginary part of the complex signal
+        _samples:
+        _valueR: '''
+        self.csignal_i = dict(zip(_samples,_valueI))
+
+
+    def set_ccomponent(self, value):
+        self.ccomponent = value
+
+
+    def del_csamples(self):
+        del self.csamples
+
+
+    def del_csignal_r(self):
+        del self.csignal_r
+
+
+    def del_csignal_i(self):
+        del self.csignal_i
+
+
+    def del_ccomponent(self):
+        del self.ccomponent
+
+    samples = property(get_csamples, set_csamples, del_csamples, "csamples's docstring")
+    signal_r = property(get_csignal_r, set_csignal_r, del_csignal_r, "csignal_a's docstring")
+    signal_i = property(get_csignal_i, set_csignal_i, del_csignal_i, "csignal_b's docstring")
+    component = property(get_ccomponent, set_ccomponent, del_ccomponent, "ccomponent's docstring")
+
         
-    def del_sampletime(self):
-        del self.__sampletime
-
-    def get_complexSignal(self):
-        ''' dictionary of complex values '''
-        return self._complexSignal
-    
-    def get_realSignal(self):
-        return self._signal.keys()
-    
-    def get_imagSignal(self):
-        return self._signal.values()
-
-    def set_complexSignal(self, _signalR, _signalI):
-        self._complexSignal = zip(_signalR, _signalI)
-        print self._complexSignal
-        
-    def del_complexSignal(self):
-        del self._complexSignal
-
-    sampletime = property(get_sampletime, set_sampletime, del_sampletime, "sampletime's docstring")
-    signal = property(get_complexSignal, set_complexSignal, del_complexSignal, "signal's docstring")
-    value = property(get_value, set_value, del_value, "value's docstring")
-    component = property(get_component, set_component, del_component, "component's docstring")
-
 from math import sqrt
 from numpy import arctan2, abs, sin, cos
 
@@ -90,51 +97,47 @@ class SignalPMU(Signal):
         ''' oye, convierte las arrays en dictionarios, el key value siempre must be el tiempo, so
         self.signal = {(magnitude, angle)}
         '''
-        Signal.__init__(self, 'polar')
-        self._polarSignal= {}
+        Signal.__init__(self)
+        self.csignal_m = {}
+        self.csignal_p = {}
 
-    def get_sampletime(self):
-        return self.__sampletime
+    def get_csignal_m(self):
+        return self.csignal_m.values()
+
+
+    def get_csignal_p(self):
+        return self.csignal_p.values()
     
-    def set_sampletime(self, value):
-        self.__sampletime = value
 
-    def del_sampletime(self):
-        del self.__sampletime
+    def set_csignal_m(self, _samples, _valueM):
+        ''' create dictionary with magnitude part of the complex signal
+        _samples:
+        _valueM: '''
+        self.csignal_m = dict(zip(_samples,_valueM))
+        self.csamples= len(_samples)
 
-    def set_complexSignal(self, _signalR, _signalI):
-        self._complexSignal = zip(_signalR, _signalI)
-        
-    def set_polarSignal(self, _signalM, _signalA):
-        self._polarSignal = dict(zip(_signalM, _signalA))
-        
-    def get_polarSignal(self):
-        return self._polarSignal
 
-    def get_magSignal(self):
-        return self._polarSignal.keys()
-    
-    def get_angSignal(self):
-        return self._polarSignal.values()
+    def set_csignal_p(self, _samples, _valueP):
+        ''' create dictionary with magnitude part of the complex signal
+        _samples:
+        _valueP: '''
+        self.csignal_p = dict(zip(_samples,_valueP))
 
-    def del_polarSignal(self):
-        del self._polarSignal
-        
+
+    def del_csignal_m(self):
+        del self.csignal_m
+
+
+    def del_csignal_p(self):
+        del self.csignal_p
+
+    signal_m = property(get_csignal_m, set_csignal_m, del_csignal_m, "csignal_m's docstring")
+    signal_p = property(get_csignal_p, set_csignal_p, del_csignal_p, "csignal_p's docstring")
+
 
     def complex2Polar(self):
-        self.set_sampletime(self.sampletime)
-        for valor in self.signal:
-            magnitude= abs(sqrt(valor[0]^2+ valor[1]^2))
-            angle= arctan2(valor[1], valor[0])
-            self._polarSignal.append(magnitude, angle)
-        return self.i_polarSignal
+        pass
     
     def polar2Complex(self):
-        self.set_sampletime(self.sampletime)
-        for valor in self.signal:
-            real= valor[0]* cos(valor[1])
-            imag= valor[0]* sin(valor[1])
-            self._complexSignal.append(real, imag)
-        return self.i_complexSignal      
+        pass    
     
-    signal = property(get_polarSignal, set_polarSignal, del_polarSignal, "signal's docstring")

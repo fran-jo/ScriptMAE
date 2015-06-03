@@ -14,12 +14,9 @@ class PhasorMeasH5(object):
     '''
     classdocs
     '''
-    _senyal= None
-    _matfile= None
-    h5file= None
-    group= None
-    dataset= None
-#     phasor= None
+    ch5file= None
+    cgroup= None
+    cdataset= None
 
     def __init__(self, params):
         '''
@@ -27,98 +24,78 @@ class PhasorMeasH5(object):
         params[0] = nom del fitxer .mat resultant de simulacio
         params[1] = outPath
         '''
-#         if os.name!= 'posix':
-#             print 'not posix', mat, dbFolder
-#             mat= params[0].replace('\\','/')
-#             dbFolder= params[1].replace('\\','/')
-#             print 'not posix', mat, dbFolder
-#             self.matfile= SimRes(mat)
-#             os.chdir(dbFolder)
-#         else:
-#             self.matfile= SimRes(params[0])
-#             os.chdir(params[1])
-        self._matfile= SimRes(params[0])
+        self.cmatfile= SimRes(params[0])
         os.chdir(params[1])
-        self._senyal= signal.Signal('complex')
-#         self.phasor= PhasorMeasurement()
-#         print params
-        self._matfile= SimRes(params[0])
-        # create/open the h5 file and append file
-        
 #         fileName= time.strftime("%H_%M_%S")+ 'SimulationOutputs.h5'
-        self.fileName= 'SimulationOutputs.h5'
+        self.cfileName= 'SimulationOutputs.h5'
+        ''' a '''
+        self.csenyal= signal.SignalPMU()
         
+    def get_csenyal(self):
+        return self.csenyal
+
+    def set_csenyal_cmp(self, _nameR, _nameI):
+        self.csenyal.set_csignal_r(self.cmatfile['Time'], self.cmatfile[_nameR])
+        self.csenyal.set_csignal_i(self.cmatfile['Time'], self.cmatfile[_nameI])
+        print 'hdpcmp', self.csenyal.get_csamples()
         
-    def get_signal(self):
-        return self._senyal
+    def set_csenyal_pol(self, _nameM, _nameP):
+        self.csenyal.set_csignal_m(self.cmatfile['Time'], self.cmatfile[_nameM])
+        self.csenyal.set_csignal_p(self.cmatfile['Time'], self.cmatfile[_nameP])
+        print 'hdppol', self.csenyal.get_csamples()
 
-    def get_h5file(self):
-        return self.h5file
-
-    def set_signal(self, _signalR, _signalI):
-        self._senyal= signal.SignalPMU()
-        self._senyal.set_complexSignal(self._matfile[_signalR], self._matfile[_signalI])
-
-    def set_h5file(self, value):
-        self.h5file = value
-
-    def del_signal(self):
-        del self._senyal
-
-    def del_unit(self):
-        del self.source
-
-    def del_h5file(self):
-        del self.h5file
-
-    senyal = property(get_signal, set_signal, del_signal, "signal's docstring")
-    h5file = property(get_h5file, set_h5file, del_h5file, "h5file's docstring")
+    def del_csenyal(self):
+        del self.csenyal
+        
+    
+    senyalCmp = property(get_csenyal, set_csenyal_cmp, del_csenyal, "signalold's docstring")
+    senyalPol = property(get_csenyal, set_csenyal_pol, del_csenyal, "signalold's docstring")
+    
+    
+    def pmu_from_cmp(self, a_instance):
+        '''Given an instance of A, return a new instance of B.'''
+        return signal.SignalPMU(a_instance.field)
     
     def calc_phasorSignal(self):
-        magnitude= []
-        fase= []
-        for fasor in self._senyal.get_complexSignal():
-            magnitude.append(absolute(fasor[0]+fasor[1]))
-            fase.append(angle(fasor[0]+fasor[1], deg=True))
-        self._senyal.set_polarSignal(magnitude,fase)
+        pass
         
-    def create_h5(self, _bus):
-        self.h5file= h5.File(self.fileName, 'a')
+    def create_h5(self, _component):
+        self.ch5file= h5.File(self.cfileName, 'a')
         # create group, for each component, with attribute
-        if not _bus in self.h5file:
-            self.group= self.h5file.create_group(_bus)
+        if not _component in self.ch5file:
+            self.cgroup= self.ch5file.create_group(_component)
         else:
-            self.group= self.h5file[_bus]
+            self.cgroup= self.ch5file[_component]
     
     def open_h5(self):
-        self.h5file= h5.File(self.fileName, 'r')
+        self.ch5file= h5.File(self.cfileName, 'r')
         
-    def save_h5(self, _component, _llistaSenyals):
+    def save_h5(self, _variable):
         # create datasets, llistaSenyals contains els objects Signal que cal guardar per un component concret
-        if not _component in self.group:
-            self.dataset= self.group.create_dataset(_component, (3, 10000))
+        if not _variable in self.cgroup:
+            print 'suputamadre', self.csenyal.get_csamples()
+            self.cdataset= self.cgroup.create_dataset(_variable, (3, self.csenyal.get_csamples()), chunks=(3, 100))
         else:
-            self.dataset= self.group[_component]
-        attr_string= 'polar'
-        self.dataset.attrs['signalType']= attr_string
+            self.cdataset= self.cgroup[_variable]
+#         attr_string= 'polar'
+#         self.dataset.attrs['signalType']= attr_string
         # store datasets in file
-        self.dataset[0,:]= self._senyal.get_sampletime()
+        self.cdataset[0,:]= self.csenyal.get_sampleTime()
         fila= 1
-        for s in _llistaSenyals:
-            ''' senyals tenen dos components, complex or polar, es guarden valors per parelles '''
-            if isinstance(s, signal.Signal):
-                self.dataset[fila,:]= s.get_realSignal()
-                fila+= 1
-                self.dataset[fila,:]= s.get_imagSignal()
-                fila+= 1
-            if isinstance(s, signal.SignalPMU):
-                self.dataset[fila,:]= s.get_magSignal()
-                fila+= 1
-                self.dataset[fila,:]= s.get_angSignal()
-                fila+= 1
+        ''' senyals tenen dos components, complex or polar, es guarden valors per parelles '''
+        if isinstance(self.csenyal, signal.SignalPMU):
+            print 'mecaguentuputamadre', self.csenyal.get_csignal_m()
+            self.cdataset[fila,:]= self.csenyal.get_csignal_m()
+            fila+= 1
+            self.cdataset[fila,:]= self.csenyal.get_csignal_p()
+        else:
+            print 'mecaguentuputamadre', self.csenyal.get_csignal_r()
+            self.cdataset[fila,:]= self.csenyal.get_csignal_r()
+            fila+= 1
+            self.cdataset[fila,:]= self.csenyal.get_csignal_i()
         # guardar en attributes els noms de les variables dels components
         # close file
-        self.h5file.close()
+        self.ch5file.close()
         
     def load_h5(self, _bus, _component):
         # load data into internal dataset
