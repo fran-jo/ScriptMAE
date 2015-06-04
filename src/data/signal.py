@@ -15,27 +15,37 @@ class Signal(object):
         Constructor
         '''
         self.csamples= 0
-        self.csignal_r = {}
-        self.csignal_i = {}
+        self.csignal_cmp = []
         self.ccomponent= ''
 
     def get_csamples(self):
         return self.csamples
 
+    
+    def get_signal(self):
+        return self.csignal_cmp
+    
     def get_sampleTime(self):
         ''' returns an array with values of sample/time '''
-        return self.csignal_r.keys()
+        series= []
+        for s,r,i in self.csignal_cmp:
+            series.append(s)
+        return series 
     
-    def get_csignal_r(self):
-        return self.csignal_r.values()
-
-
-    def get_csignal_i(self):
-        return self.csignal_i.values()
-
+    def get_signalReal(self):
+        series= []
+        for s,r,i in self.csignal_cmp:
+            series.append(r)
+        return series    
+        
+    def get_signalImag(self):
+        series= []
+        for s,r,i in self.csignal_cmp:
+            series.append(i)
+        return series    
 
     def get_ccomponent(self):
-        return self.ccomponent
+        return self.ccomponent  
 
 
     def set_csamples(self, _value):
@@ -43,19 +53,21 @@ class Signal(object):
         self.csamples = len(_value)
 
 
-    def set_csignal_r(self, _samples, _valueR):
+#     def upd_signal(self, _valueR, _valueI):
+#         ''' create dictionary with real part of the complex signal
+#         _valueR: 
+#         _valueI: '''
+#         samples= self.get_sampleTime()
+#         self.csignal_cmp= []
+#         self.csignal_cmp= [(s,r,i) for s,r,i in zip(samples, _valueR, _valueI)]
+#         self.csamples= len(self.csignal_cmp)
+        
+    def set_signalRect(self, _samples, _valueR, _valueI):
         ''' create dictionary with real part of the complex signal
         _samples:
         _valueR: '''
-        self.csignal_r = dict(zip(_samples,_valueR))
-        self.csamples= len(_samples)
-
-
-    def set_csignal_i(self, _samples, _valueI):
-        ''' create dictionary with imaginary part of the complex signal
-        _samples:
-        _valueR: '''
-        self.csignal_i = dict(zip(_samples,_valueI))
+        self.csignal_cmp= [(s,r,i) for s,r,i in zip(_samples, _valueR, _valueI)]
+        self.csamples= len(self.csignal_cmp)
 
 
     def set_ccomponent(self, value):
@@ -66,20 +78,15 @@ class Signal(object):
         del self.csamples
 
 
-    def del_csignal_r(self):
-        del self.csignal_r
-
-
-    def del_csignal_i(self):
-        del self.csignal_i
+    def del_signal(self):
+        del self.csignal_cmp
 
 
     def del_ccomponent(self):
         del self.ccomponent
 
     samples = property(get_csamples, set_csamples, del_csamples, "csamples's docstring")
-    signal_r = property(get_csignal_r, set_csignal_r, del_csignal_r, "csignal_a's docstring")
-    signal_i = property(get_csignal_i, set_csignal_i, del_csignal_i, "csignal_b's docstring")
+    signalCmp = property(get_signal, set_signalRect, del_signal, "csignal_a's docstring")
     component = property(get_ccomponent, set_ccomponent, del_ccomponent, "ccomponent's docstring")
 
         
@@ -98,41 +105,37 @@ class SignalPMU(Signal):
         self.signal = {(magnitude, angle)}
         '''
         Signal.__init__(self)
-        self.csignal_m = {}
-        self.csignal_p = {}
 
-    def get_csignal_m(self):
-        return self.csignal_m.values()
-
-
-    def get_csignal_p(self):
-        return self.csignal_p.values()
     
-
-    def set_csignal_m(self, _samples, _valueM):
-        ''' create dictionary with magnitude part of the complex signal
+    def get_signal(self):
+        return self.csignal_cmp
+    
+    def get_signalMag(self):
+        series= []
+        for s,m,p in self.csignal_cmp:
+            series.append(m)
+        return series    
+        
+    def get_signalPhase(self):
+        series= []
+        for s,m,p in self.csignal_cmp:
+            series.append(p)
+        return series    
+    
+    
+    def set_signalPolar(self, _samples, _valueM, _valueP):
+        ''' create dictionary with real part of the complex signal
         _samples:
-        _valueM: '''
-        self.csignal_m = dict(zip(_samples,_valueM))
-        self.csamples= len(_samples)
+        _valueR: '''
+        self.csignal_cmp= [(s,r,i) for s,r,i in zip(_samples, _valueM, _valueP)]
+        self.csamples= len(self.csignal_cmp)
 
 
-    def set_csignal_p(self, _samples, _valueP):
-        ''' create dictionary with magnitude part of the complex signal
-        _samples:
-        _valueP: '''
-        self.csignal_p = dict(zip(_samples,_valueP))
-
-
-    def del_csignal_m(self):
-        del self.csignal_m
-
-
-    def del_csignal_p(self):
-        del self.csignal_p
-
-    signal_m = property(get_csignal_m, set_csignal_m, del_csignal_m, "csignal_m's docstring")
-    signal_p = property(get_csignal_p, set_csignal_p, del_csignal_p, "csignal_p's docstring")
+    def del_signal(self):
+        del self.csignal_cmp
+        
+        
+    signalPolar = property(get_signal, set_signalPolar, del_signal, "csignal_pol's docstring")
 
 
     def complex2Polar(self):

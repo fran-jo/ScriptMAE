@@ -1,9 +1,6 @@
-With classes Signal/SignalPMU and PhasorMeasH5.py
-Create an API to read/write signals.
-	Read
-	Write
-	Create (create the .h5 file with group/attribute/dataset
-	Load (open the .h5 file and load group/attribute/dataset)
-		(functions work with class attributes group/attribute/dataset/signal)
-		
-.mat files we use ModelicaRes
+Class PhasorMeasCSV.py for reading PMU measurements
+
+Make PhasorMeasH5.py deal with multiple signals in memory
+
+	
+	
