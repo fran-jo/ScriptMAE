@@ -6,5 +6,15 @@ PhasorMeasH5.py with API to read/write 1 signal.
 	open (open the .h5 file)
 	save (save signal data into dataset and save file .h5 with attributes/dataset)
 	load (open the .h5 file and load group/attribute/dataset)
-		
+	
+	./res/
+	SimulationOutputs.h5
+	./res/SMIB1L_Group1_Nordic44.mat
+	
+	./res/
+	SimulationOutputs.h5
+	
+	./res/
+	,
+	
 .mat files we use ModelicaRes
