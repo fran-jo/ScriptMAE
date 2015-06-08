@@ -12,6 +12,8 @@ if __name__ == '__main__':
     csvpmu.load_header()
     
     ''' select variable, matching variable from model with variable from memory (.csv) '''
-    csvpmu.load_column('KTHLAB:Dfrequency')
-    
-    pass
+#     csvpmu.load_column('KTHLAB:Frequency')
+#     print csvpmu.get_signal('KTHLAB:Frequency')
+#     print len(csvpmu.get_column('KTHLAB:Frequency'))
+    csvpmu.load_column('Timestamp')
+    csvpmu.get_sampletime('Timestamp')
