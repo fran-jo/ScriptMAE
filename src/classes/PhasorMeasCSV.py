@@ -5,7 +5,6 @@ Created on 7 apr 2015
 '''
 import csv
 from datetime import datetime
-import time
 
 class PhasorMeasCSV(object):
     '''
@@ -46,9 +45,6 @@ class PhasorMeasCSV(object):
     
     def get_sampletime(self, _variable):
         ''' process data to generate a vector with long values '''
-        tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f").timetuple() for x in self.csignal[_variable]]
-        timeZero= time.mktime(tiempos[0])
-        print timeZero
-        senyal= [(time.mktime(x)- timeZero)*1000 for x in tiempos]
-        print senyal
-        return senyal
+        tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") for x in self.csignal[_variable]]
+        sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
+        return sampletime
