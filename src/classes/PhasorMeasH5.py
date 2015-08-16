@@ -43,11 +43,12 @@ class PhasorMeasH5(object):
 
     def del_senyal(self):
         del self.csenyal
-        
     
     senyalCmp = property(get_senyal, set_senyalRect, del_senyal, "signalold's docstring")
     senyalPol = property(get_senyal, set_senyalPolar, del_senyal, "signalold's docstring")
     
+    def get_h5groupSet(self):
+        return self.cgroup
     
     def pmu_from_cmp(self, a_instance):
         '''Given an instance of A, return a new instance of B.'''
@@ -99,7 +100,12 @@ class PhasorMeasH5(object):
         # guardar en attributes els noms de les variables dels components
         # close file
         self.ch5file.close()
-        
+    
+    def load_h5groupSet(self):
+        return self.ch5file.items()
+    def load_h5dataSet(self):
+        return 'datasets'
+
     def load_h5(self, _component, _variable):
         # load data into internal dataset
         self.cgroup= self.ch5file[_component]
