@@ -11,7 +11,9 @@ from data import signal
 
 class PhasorMeasH5(object):
     '''
-    classdocs
+    ch5file file object with reference to the .h5 file
+    cgroup object to keep in memory a group from the .h5 file
+    cdataset objet to keep in memory the dataset of signals from the .h5 file
     '''
     ch5file= None
     cgroup= None
@@ -33,12 +35,15 @@ class PhasorMeasH5(object):
         self.csenyal= signal.SignalPMU()
         
     def get_senyal(self):
+	    ''' return signal object '''
         return self.csenyal
 
     def set_senyalRect(self, _nameR, _nameI):
+		''' set a signal in complex form, real+imaginary '''
         self.csenyal.set_signalRect(self.cmatfile['Time'], self.cmatfile[_nameR], self.cmatfile[_nameI])
         
     def set_senyalPolar(self, _nameM, _nameP):
+		''' set a signal in polar form, magnitude + angle '''
         self.csenyal.set_signalPolar(self.cmatfile['Time'], self.cmatfile[_nameM], self.cmatfile[_nameP])
 
     def del_senyal(self):
@@ -55,6 +60,7 @@ class PhasorMeasH5(object):
         return signal.SignalPMU(a_instance.field)
     
     def calc_phasorSignal(self):
+		''' function that converts the internal complex signal into polar form '''
         magnitud= []
         fase= []
         for re,im in zip(self.csenyal.get_signalReal(), self.csenyal.get_signalReal()):
@@ -63,6 +69,9 @@ class PhasorMeasH5(object):
         self.csenyal.set_signalPolar(self.get_senyal().get_sampleTime(), magnitud, fase)
         
     def create_h5(self, _component):
+        ''' Creates the .h5, in append mode, with an internal structure.
+        When created, the .h5 file contains a new group with the same name as the input parameter
+        _component indicates the name of component where the data is collected from '''
         self.ch5file= h5.File(self.cfileName, 'a')
         # create group, for each component, with attribute
         if not _component in self.ch5file:
@@ -71,10 +80,14 @@ class PhasorMeasH5(object):
             self.cgroup= self.ch5file[_component]
     
     def open_h5(self):
+        ''' Opens and existing .h5 file in reading mode '''
         self.ch5file= h5.File(self.cfileName, 'r')
         
     def save_h5(self, _variable):
-        # create datasets, llistaSenyals contains els objects Signal que cal guardar per un component concret
+        ''' Saves signal data from a specific variable (input parameter). It creates an 
+        internal dataset into the current group of the current .h5. 
+        _variable is the name of the signal to be saved '''
+        # create datasets
         if not _variable in self.cgroup:
             self.cdataset= self.cgroup.create_dataset(_variable, (3, self.csenyal.get_csamples()), chunks=(3, 100))
         else:
@@ -84,7 +97,7 @@ class PhasorMeasH5(object):
         # store datasets in file
         self.cdataset[0,:]= self.csenyal.get_sampleTime()
         fila= 1
-        ''' senyals tenen dos components, complex or polar, es guarden valors per parelles '''
+        ''' signals can store two type of data, complex or polar, values are saved per pairs '''
         if isinstance(self.csenyal, signal.SignalPMU):
             self.cdataset.attrs["unit"]= 'p.u.'
             self.cdataset.attrs['coord']= 'polar'  
@@ -107,6 +120,9 @@ class PhasorMeasH5(object):
         return 'datasets'
 
     def load_h5(self, _component, _variable):
+        ''' Loads signal data from a specific variable form a specific component 
+        _component is the name of the component we are working with
+        _variable is the name of the variable that contains signal data, from the specified component '''
         # load data into internal dataset
         self.cgroup= self.ch5file[_component]
         self.cdataset= self.cgroup[_variable]

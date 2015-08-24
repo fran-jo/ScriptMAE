@@ -19,10 +19,12 @@ class Signal(object):
         self.ccomponent= ''
 
     def get_csamples(self):
+        ''' return the number of samples of the singal '''
         return self.csamples
 
     
     def get_signal(self):
+        ''' return the signal in rectangular form '''
         return self.csignal_cmp
     
     def get_sampleTime(self):
@@ -33,35 +35,28 @@ class Signal(object):
         return series 
     
     def get_signalReal(self):
+        ''' returns an array with real component of the signal'''
         series= []
         for s,r,i in self.csignal_cmp:
             series.append(r)
         return series    
         
     def get_signalImag(self):
+        ''' returns an array with imaginary component of the signal '''
         series= []
         for s,r,i in self.csignal_cmp:
             series.append(i)
         return series    
 
     def get_ccomponent(self):
+        ''' returns the name of the component which the signal belongs to '''
         return self.ccomponent  
 
 
     def set_csamples(self, _value):
         ''' _value: input sample/time array '''
         self.csamples = len(_value)
-
-
-#     def upd_signal(self, _valueR, _valueI):
-#         ''' create dictionary with real part of the complex signal
-#         _valueR: 
-#         _valueI: '''
-#         samples= self.get_sampleTime()
-#         self.csignal_cmp= []
-#         self.csignal_cmp= [(s,r,i) for s,r,i in zip(samples, _valueR, _valueI)]
-#         self.csamples= len(self.csignal_cmp)
-        
+      
     def set_signalRect(self, _samples, _valueR, _valueI):
         ''' create dictionary with real part of the complex signal
         _samples:
@@ -71,6 +66,7 @@ class Signal(object):
 
 
     def set_ccomponent(self, value):
+        ''' set the name of the component which the signal belongs to '''
         self.ccomponent = value
 
 
@@ -108,15 +104,18 @@ class SignalPMU(Signal):
 
     
     def get_signal(self):
+        ''' return the signal in rectangular form '''
         return self.csignal_cmp
     
     def get_signalMag(self):
+        ''' returns an array with magnitude component of the signal '''
         series= []
         for s,m,p in self.csignal_cmp:
             series.append(m)
         return series    
         
     def get_signalPhase(self):
+        ''' returns an array with phase component of the signal '''
         series= []
         for s,m,p in self.csignal_cmp:
             series.append(p)
