@@ -4,19 +4,21 @@ Created on 4 jun 2015
 @author: fragom
 '''
 import sys
-from classes import PhasorMeasCSV
+from classes.StreamCSVFile import InputCSVStream
 
 if __name__ == '__main__':
     ''' load names from .csv '''
-    csvpmu= PhasorMeasCSV.PhasorMeasCSV(sys.argv[1],',')
-    csvpmu.load_header()
+    csvpmu= InputCSVStream(['./res/File_8.csv',','])
+    print csvpmu.load_csvHeader()
+    print csvpmu.load_csvHeaderIdx('KTHLAB:EMLAB:Magnitude')
+    print csvpmu.load_csvValues('KTHLAB:EMLAB:Magnitude')
     
     ''' select variable, matching variable from model with variable from memory (.csv) '''
 #     csvpmu.load_column('KTHLAB:Frequency')
 #     print csvpmu.get_signal('KTHLAB:Frequency')
 #     print len(csvpmu.get_column('KTHLAB:Frequency'))
-    csvpmu.load_column('Timestamp')
-    csvpmu.get_sampletime('Timestamp')
+#     csvpmu.load_column('Timestamp')
+#     csvpmu.get_sampletime('Timestamp')
     
     #     tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") for x in self.csignal[_variable]]
 #         timeZero= time.mktime(tiempos[0])

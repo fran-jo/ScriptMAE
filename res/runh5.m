@@ -1,14 +1,17 @@
 close all;
 clear;
-
-%load LinearSystem64
-data2 = h5read('pandas5.h5','/df/block0_values');
-
+%data = h5read('PMUdata_Bus1VA2VALoad9PQ.h5','/df/block0_values');
+do=data(2,:);
+Y=do.'
 order=18;
-y=data2(1,:)
-Y=y.'
-[mode_freq, mode_damp]=mode_est_basic_fcn(Y, order);
-disp('    freq   and  damp')
+[mode_freq, mode_damp,data]=mode_est_basic_fcn(Y, order);
+disp('    freq#######damp######')
+
 disp([mode_freq  mode_damp])
+disp('data')
+%disp([data])
 
+datasett=[mode_freq mode_damp]
 
+hdf5write('mode_est_result.h5','/dampfreq',datasett);
+%csvwrite('mode_est_result.csv',datasett);

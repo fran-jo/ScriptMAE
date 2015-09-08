@@ -21,3 +21,17 @@ PhasorMeasH5.py with API to read/write 1 signal.
 	,
 	
 .mat files we use ModelicaRes
+
+Model resources for ERA test 
+	PMUdata_Bus1VA2VALoad9PQ.csv, this file or relevant CSV file can be access for ERA
+	
+Requirements for Mode Estimation algorithm:
+	mes.jar file is included in ROOT_PROJECT/lib, this folder is added to the classpath of the project
+		(for testing, passing as input to the script
+		
+	mode_est_basic_fcn.m should be located under ROOT_PROJECT/res (if it dosen't work sometimes matlab 
+		needs to set the matlab working directory)
+		
+	Matlab command "data = h5read('PMUdata_Bus1VA2VALoad9PQ.h5','/df/block0_values');" is sent via uSeRTeST.txt 
+		(previous name was file.txt), sent to matlab through using matlabcontrol
+
