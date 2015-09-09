@@ -26,21 +26,34 @@ class Validation():
     '''
     def __init__(self, argv):
         ''' Loading output variables of the model, their values will be stored in h5 and plotted
-        argv[0]: file with variable names from the model'''
+        argv[0]: file with variable names from the model
+        '''
         
-        self.outputs= OutputModelVar(sys.argv[1])
+        self.outputs= OutputModelVar(sys.argv[0])
         self.outputs.load_varList()
         
-    def load_csvMeas(self, _sourceCSV):
-        ''' argv[0]: source file (.h5 or .csv) '''
         
-        self.iocsv= InputCSVStream([_sourceCSV, ','])
-        for meas, var in self.outputs.get_varList():
-            modelSignal.append(var.split(','))
-        ''' emulate usecols=(1,2,3,4,5,6) but with variable/measurement names '''
-        iocsv.load_csv(modelSignal)
-    
-    def load_h5Meas(self, _sourceh5):
+    def load_sources(self, _sourceCSV, _sourceH5):
+        ''' 
+        _sourceCSV: .csv file
+        _sourceH5: .h5 file
+        '''
+        '''TODO: values of Timestamp must be converted into samples '''
+        
+        if (_sourceCSV != ''):
+            self.iocsv= InputCSVStream('./res/File_8.csv', ',')
+            ''' select the signals according to variables '''
+            for meas, var in self.outputs.get_varList():
+                modelSignal.append(var.split(','))
+                ''' emulate usecols=(1,2,3,4,5,6) but with variable/measurement names '''
+                self.iocsv.load_csv(modelSignal)
+                
+        if (_sourceH5 != ''):
+            print 'sourceH5'
+        
+        
+        
+    def validate(self, _simSignal, _measSignal):
         pass
     
     t=time.time()
@@ -50,6 +63,9 @@ class Validation():
     print io 
     f2=io.to_hdf('PMUdata_Bus1VA2Venam1.h5','df', complib='zlib', complevel=9)
 
+def main(argv):
+    smith= Validation(argv[2])
+    smith.load_sources(argv[0],argv[1])
 
 if __name__ == '__main__':
     

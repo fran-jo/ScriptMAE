@@ -3,16 +3,23 @@ Created on 4 jun 2015
 
 @author: fragom
 '''
-import sys
+
 from classes.StreamCSVFile import InputCSVStream
 
 if __name__ == '__main__':
     ''' load names from .csv '''
-    csvpmu= InputCSVStream(['./res/File_8.csv',','])
-    print csvpmu.load_csvHeader()
-    print csvpmu.load_csvHeaderIdx('KTHLAB:EMLAB:Magnitude')
-    print csvpmu.load_csvValues('KTHLAB:EMLAB:Magnitude')
+    csvpmu= InputCSVStream('./res/File_8.csv', ',')
+#     print csvpmu.load_csvHeader()
+    variable= 'KTHLAB:EMLAB:Magnitude'.split(':')[:-1]
+    variable = ':'.join(variable)
+    csvpmu.load_csvValues(variable,'KTHLAB:EMLAB:Magnitude','KTHLAB:EMLAB:Angle')
+    print csvpmu.get_senyal(variable)
     
+    variable= 'NTNU_PMU:Va:Magnitude'.split(':')[:-1]
+    variable = ':'.join(variable)
+    csvpmu.load_csvValues(variable, 'NTNU_PMU:Va:Magnitude','NTNU_PMU:Va:Angle')
+    print csvpmu.get_senyal(variable)
+    print 'hola'
     ''' select variable, matching variable from model with variable from memory (.csv) '''
 #     csvpmu.load_column('KTHLAB:Frequency')
 #     print csvpmu.get_signal('KTHLAB:Frequency')

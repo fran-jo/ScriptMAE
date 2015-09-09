@@ -3,7 +3,6 @@ Created on 7 apr 2015
 
 @author: fragom
 '''
-from modelicares import SimRes
 from numpy import angle,absolute
 import os
 import pandas as panda
@@ -21,14 +20,13 @@ class StreamCSVFile(object):
     cheader= []
     dsenyal= {}
 
-    def __init__(self, _sourceFile):
+    def __init__(self, _sourceFile, _delimiter=','):
         '''
         Constructor
-        _sourceFile[0]: .csv file path
-        _sourceFile[1]: delimiter of fields
-        _colNames[1..N]: column names use to retrieve data from the .csv file
+        _sourceFile: .csv file path
+        _delimiter: delimiter of fields
         '''
-        self.ccsvFile= panda.read_csv(_sourceFile[0],sep=_sourceFile[1])
+        self.ccsvFile= panda.read_csv(_sourceFile, sep=_delimiter)
         
     def get_senyal(self, _variable):
         ''' return signal object '''
@@ -52,17 +50,16 @@ class StreamCSVFile(object):
         
     def set_senyalPolar(self, _variable, _nameM, _nameP):
         ''' set a signal in polar form, magnitude + angle '''
-        if self.compiler== 'omc': 
-            nameVarTime= 'time' 
-        else: 
-            nameVarTime= "Time"
         csenyal= signal.SignalPMU()
         if (_nameP != []):
-            csenyal.set_signalPolar(self.cmatfile[nameVarTime], self.cmatfile[_nameM], self.cmatfile[_nameP])
+            csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
+                                    list(self.ccsvFile[_nameM]), list(self.ccsvFile[_nameP]))
         else:
             ''' array of 0 of the same length as samples '''
-            emptyarray= [0 for x in self.cmatfile[nameVarTime]]
-            csenyal.set_signalPolar(self.cmatfile[nameVarTime], self.cmatfile[_nameM], emptyarray)
+            emptyarray= [0 for x in self.ccsvFile['Timestamp']]
+            csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
+                                    list(self.ccsvFile[_nameM]), emptyarray)
+        csenyal.set_ccomponent(_variable)    
         self.dsenyal[_variable]= csenyal
         
     def del_senyal(self):
@@ -72,6 +69,8 @@ class StreamCSVFile(object):
     senyalCmp = property(get_senyal, set_senyalRect, del_senyal, "signalold's docstring")
     senyalPol = property(get_senyal, set_senyalPolar, del_senyal, "signalold's docstring")
     
+    def timestamp2sample(self):
+        pass
     
     def pmu_from_cmp(self, a_instance):
         '''Given an instance of A, return a new instance of B.'''
@@ -83,18 +82,27 @@ class InputCSVStream(StreamCSVFile):
     Class observer for PMU data, in .csv file format
     Header format: 
     '''
-    def __init__(self, _sourceFile):
-        super(InputCSVStream, self).__init__(_sourceFile)
+    def __init__(self, _sourceFile, _delimiter=','):
+        super(InputCSVStream, self).__init__(_sourceFile, _delimiter)
 
     def open_csv(self):
         ''' Opens and existing csv file in reading mode '''
-        
+        pass
          
-    def load_csvValues(self, _variable):
+    def load_csvValues(self, _variable, _nameM, _nameP):
         ''' Loads signal data from a specific variable form a specific component
         _variable: variable name of the signal, column name '''
-        ''' TODO: open file with column name '''
-        return self.ccsvFile[_variable]
+        csenyal= signal.SignalPMU()
+        if (_nameP != []):
+            csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
+                                    list(self.ccsvFile[_nameM]), list(self.ccsvFile[_nameP]))
+        else:
+            ''' array of 0 of the same length as samples '''
+            emptyarray= [0 for x in self.ccsvFile['Timestamp']]
+            csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
+                                    list(self.ccsvFile[_nameM]), emptyarray)
+        csenyal.set_ccomponent(_variable)    
+        self.dsenyal[_variable]= csenyal
     
     def load_csvHeader(self):
         self.cheader= list(self.ccsvFile.columns.values)
