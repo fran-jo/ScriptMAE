@@ -4,7 +4,7 @@ Created on 7 apr 2015
 @author: fragom
 '''
 from numpy import angle,absolute
-import os
+import time, datetime
 import pandas as panda
 from data import signal
 
@@ -34,19 +34,7 @@ class StreamCSVFile(object):
 
     def set_senyalRect(self, _variable, _nameR, _nameI):
         ''' set a signal in complex form, real+imaginary '''
-        if self.compiler== 'omc': 
-            nameVarTime= 'time' 
-        else: 
-            nameVarTime= "Time"
-        csenyal= signal.Signal()
-        if (_nameI != []):
-            csenyal.set_signalRect(self.cmatfile[nameVarTime], self.cmatfile[_nameR], self.cmatfile[_nameI])
-        else:
-            ''' array of 0 of the same length as samples '''
-            emptyarray= [0 for x in self.cmatfile[nameVarTime]]
-            csenyal.set_signalRect(self.cmatfile[nameVarTime], self.cmatfile[_nameR], emptyarray)
-            
-        self.dsenyal[_variable]= csenyal
+        pass
         
     def set_senyalPolar(self, _variable, _nameM, _nameP):
         ''' set a signal in polar form, magnitude + angle '''
@@ -65,12 +53,35 @@ class StreamCSVFile(object):
     def del_senyal(self):
         del self.csenyal
     
-    
     senyalCmp = property(get_senyal, set_senyalRect, del_senyal, "signalold's docstring")
     senyalPol = property(get_senyal, set_senyalPolar, del_senyal, "signalold's docstring")
     
-    def timestamp2sample(self):
-        pass
+    def timestamp2sample(self, _variable):
+#         print self.dsenyal[_variable].get_sampleTime()
+        tiempos= [time.strptime(x,"%Y/%m/%d %H:%M:%S.%f") for x in self.dsenyal[_variable].get_sampleTime()]
+        print 'len(tiempos)', len(tiempos) #aqui ha d'anar el loop
+        timeZero= time.mktime(tiempos[0])
+        timeUno= time.mktime(tiempos[1])
+#         print 'tiempos[0]', tiempos[0], ',', 'tiempos[1]', tiempos[1]
+        print 'timeZero', timeZero, ',', 'timeUno', timeUno
+#         c= tiempos[1] - tiempos[0]
+        c= timeUno - timeZero
+        s= divmod(c.days * 86400 + c.seconds, 60)
+        print 'c.microseconds', c.microseconds
+        print 'c.microseconds/1000', c.microseconds/1000
+        sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
+        sampletime= []
+        for t in tiempos:
+            milis= (t- tiempos[0]).microseconds/1000
+            sampletime.append(milis)
+        print 'sampletime'
+        print sampletime
+        return sampletime
+         
+        senyal= [(time.mktime(x)- timeZero)*1000 for x in tiempos]
+        print senyal
+        print senyal
+        return senyal
     
     def pmu_from_cmp(self, a_instance):
         '''Given an instance of A, return a new instance of B.'''
@@ -91,7 +102,10 @@ class InputCSVStream(StreamCSVFile):
          
     def load_csvValues(self, _variable, _nameM, _nameP):
         ''' Loads signal data from a specific variable form a specific component
-        _variable: variable name of the signal, column name '''
+        _variable: variable name of the signal, column name
+        _nameM: name of the magnitude signal
+        _nameP: name of the phase signal 
+        '''
         csenyal= signal.SignalPMU()
         if (_nameP != []):
             csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
@@ -114,18 +128,3 @@ class InputCSVStream(StreamCSVFile):
     def close_csv(self):
         self.ccsvfile.close()
         
-        
-class OutputCSVStream(StreamCSVFile):
-    
-    def __init__(self, _sourceFile):
-        super(OutputCSVStream, self).__init__(_sourceFile)
-        
-    def open_csv(self):
-        ''' Opens the csv file in append mode '''
-    
-    def save_csv(self, _component, _variable):
-        ''' '''
-        
-    def close_csv(self):
-        # close file
-        self.ch5file.close()
