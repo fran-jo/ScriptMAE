@@ -38,8 +38,6 @@ class Validation():
         _sourceCSV: .csv file
         _sourceH5: .h5 file
         '''
-        '''TODO: values of Timestamp must be converted into samples '''
-        
         if (_sourceCSV != ''):
             self.iocsv= InputCSVStream('./res/File_8.csv', ',')
             ''' select the signals according to variables '''
@@ -52,7 +50,7 @@ class Validation():
                 measSignals= meas.split(',')
 #                 print measSignals[0], ' - ', measSignals[1]
                 self.iocsv.load_csvValues(name, measSignals[0], measSignals[1])
-#             self.iocsv.timestamp2sample(name)
+            self.iocsv.timestamp2sample(name)
 #             print self.iocsv.get_senyal(name)
         if (_sourceH5 != ''):
             print 'sourceH5'
@@ -60,22 +58,15 @@ class Validation():
             self.ioh5.open_h5()
             self.ioh5.load_h5('df', 'block0', 'bus9.v')
 #             print self.ioh5.get_senyal('block0')
-        
         return self.iocsv.get_senyal('KTHLAB:EMLAB'), self.ioh5.get_senyal('block0')
         
     def validate(self, _simSignal, _measSignal):
         pass
-    
-#     t=time.time()
-#          
-#     io = pd.read_csv('./res/PMUdata_Bus1VA2VALoad9PQ.csv',sep=",",usecols=(1,2,3,4,5,6))
-#       
-#     print io 
-#     f2=io.to_hdf('PMUdata_Bus1VA2Venam1.h5','df', complib='zlib', complevel=9)
 
 def main(argv):
     smith= Validation(sys.argv[3])
-    smith.load_sources(sys.argv[1], sys.argv[2])
+    [pmuSignal, simSignal]= smith.load_sources(sys.argv[1], sys.argv[2])
+    smith.validate(simSignal, pmuSignal)
 
 if __name__ == '__main__':
     main(sys.argv[1:])

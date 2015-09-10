@@ -17,7 +17,8 @@ class StreamH5File(object):
     '''
     ch5file= None
     cgroup= None
-    cdataset= None
+    ndataset= None
+    vdataset= None
 
     def __init__(self, _params, _compiler='omc'):
         '''
@@ -134,20 +135,20 @@ class InputH5Stream(StreamH5File):
         '''
         # load data into internal dataset
         self.cgroup= self.ch5file[_network]
-        self.cdataset= self.cgroup[_component+'_values']
-        self.cdatasetNames= self.cgroup[_component+'_items']
+        self.vdataset= self.cgroup[_component+'_values']
+        self.ndataset= self.cgroup[_component+'_names']
         idx= 1
-        for item in self.cdatasetNames:
+        for item in self.ndataset:
             print idx, item
             if (item == _variable):
-                if self.cdataset.attrs['coord']== 'polar':
+                if self.vdataset.attrs['coord']== 'polar':
                     print 'polar'
                     csenyal= signal.SignalPMU()
-                    csenyal.set_signalPolar(self.cdataset[:,0], self.cdataset[:,idx], self.cdataset[:,idx+1])
+                    csenyal.set_signalPolar(self.vdataset[:,0], self.vdataset[:,idx], self.vdataset[:,idx+1])
                 else:
                     print 'complex'
                     csenyal= signal.Signal()
-                    csenyal.set_signalRect(self.cdataset[:,0], self.cdataset[:,idx], self.cdataset[:,idx+1])
+                    csenyal.set_signalRect(self.vdataset[:,0], self.vdataset[:,idx], self.vdataset[:,idx+1])
                 self.dsenyal[_component]= csenyal
             idx+= 1
             

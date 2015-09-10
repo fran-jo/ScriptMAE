@@ -5,8 +5,8 @@ Created on 4 jun 2015
 '''
 
 from classes.StreamCSVFile import InputCSVStream
-import datetime 
-from timeit import time
+from datetime import datetime 
+import time
 
 if __name__ == '__main__':
     ''' load names from .csv '''
@@ -30,23 +30,23 @@ if __name__ == '__main__':
 #     csvpmu.get_sampletime('Timestamp')
     
     tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") for x in  csvpmu.get_senyal(variable).get_sampleTime()]
-    timeZero= time.mktime(tiempos[0])
-    timeUno= time.mktime(tiempos[1])
-    print tiempos[0], ',', tiempos[1]
-    print timeZero, ',', timeUno
-    c= tiempos[1] - tiempos[0]
-    c= timeUno - timeZero
-    s= divmod(c.days * 86400 + c.seconds, 60)
-    print c.microseconds
-    print c.microseconds/1000
+#     timeZero= time.mktime(tiempos[0])
+#     timeUno= time.mktime(tiempos[1])
+#     print tiempos[0], ',', tiempos[1]
+#     print timeZero, ',', timeUno
+#     c= tiempos[1] - tiempos[0]
+#     c= timeUno - timeZero
+#     s= divmod(c.days * 86400 + c.seconds, 60)
+#     print c.microseconds
+#     print c.microseconds/1000
     sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
-    sampletime= []
-    for t in tiempos:
-        milis= (t- tiempos[0]).microseconds/1000
-        sampletime.append(milis)
+#     sampletime= []
+#     for t in tiempos:
+#         milis= (t- tiempos[0]).microseconds/1000
+#         sampletime.append(milis)
     print sampletime
 #     return sampletime
     
-    senyal= [(time.mktime(x)- timeZero)*1000 for x in tiempos]
-    print senyal
+#     senyal= [(time.mktime(x)- timeZero)*1000 for x in tiempos]
+#     print senyal
 #     return senyal
