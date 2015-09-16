@@ -16,7 +16,6 @@ import modred as MR
 import h5py
 import time
 import pandas as pd
-from PyInstaller.lib.unittest2.test.test_break import self
 
 class Validation():
     ''' class for validation, things to do
@@ -38,8 +37,6 @@ class Validation():
         _sourceCSV: .csv file, i.e. ./res/File_8.csv
         _sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
         '''
-        '''TODO: values of Timestamp must be converted into samples '''
-        
         if (_sourceCSV != ''):
             self.iocsv= InputCSVStream(_sourceCSV, ',')
             ''' select the signals according to variables '''
@@ -52,7 +49,7 @@ class Validation():
                 measSignals= meas.split(',')
 #                 print measSignals[0], ' - ', measSignals[1]
                 self.iocsv.load_csvValues(name, measSignals[0], measSignals[1])
-#             self.iocsv.timestamp2sample(name)
+            self.iocsv.timestamp2sample(name)
 #             print self.iocsv.get_senyal(name)
         if (_sourceH5 != ''):
             self.ioh5= InputH5Stream(_sourceH5)
@@ -70,6 +67,7 @@ class Validation():
         csvData.to_hdf(_sourceH5,'df', complib='zlib', complevel=9)  
         self.ioh5.open_exth5(_sourceH5)
         self.ioh5.open_load_h5(_modelName, _component, _variable)
+        return self.iocsv.get_senyal('KTHLAB:EMLAB'), self.ioh5.get_senyal('block0')
         
 #         return (csvData, self.ioh5.get_senyal('block0'))
     
@@ -126,8 +124,7 @@ def main(argv):
     smith.load_pandaSource(sys.argv[1], sys.argv[2], 'model', 'component', 'signal')
     ''' TODO: function for each method '''
     method_ME(_signalPMU, _signalSimulation)
-    ''' TODO: how to indicate the method to use? input parameter
-    
+    ''' TODO: how to indicate the method to use? input parameter'''
 
 if __name__ == '__main__':
     main(sys.argv[1:])

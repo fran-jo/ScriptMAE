@@ -3,7 +3,6 @@ Created on 7 apr 2015
 
 @author: fragom
 '''
-import time
 from datetime import datetime
 import pandas as panda
 from data import signal
@@ -61,7 +60,7 @@ class StreamCSVFile(object):
         sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
 #         print sampletime
         return sampletime
-    
+
     def pmu_from_cmp(self, a_instance):
         '''Given an instance of A, return a new instance of B.'''
         return signal.SignalPMU(a_instance.field)  
@@ -95,6 +94,19 @@ class InputCSVStream(StreamCSVFile):
             csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
                                     list(self.ccsvFile[_nameM]), emptyarray)
         csenyal.set_ccomponent(_variable)    
+        self.dsenyal[_variable]= csenyal
+    
+    def timestamp2sample(self, _variable):
+        '''converts the timestamp value from pmu measurement into sample value as sample time 
+        _variable name of the measurement to get the signal from 
+        '''
+        tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") 
+                  for x in self.dsenyal[_variable].get_sampleTime()]
+        sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
+        self.dsenyal[_variable].set_sampleTime(sampletime)
+        csenyal= signal.SignalPMU()
+        csenyal.set_signalPolar(sampletime, self.dsenyal[_variable].get_signalMag(), 
+                                self.dsenyal[_variable].get_signalPolar())
         self.dsenyal[_variable]= csenyal
     
     def load_csvHeader(self):
