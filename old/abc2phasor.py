@@ -11,7 +11,6 @@ def abc2phasor(argv):
     '''input of the function:
     result file, .mat, either from DY or OMC 
     folder, where to store data h5'''
-    ''' TODO: Unify inputs files of MAE and outputs of MEE, should be the same and easy to access '''
 #     if os.name== 'posix':
 #         print platform.system()
     ''' Load simulation results from .mat file '''

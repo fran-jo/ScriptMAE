@@ -17,7 +17,8 @@ class StreamH5File(object):
     '''
     ch5file= None
     cgroup= None
-    cdataset= None
+    cdatasetValues= None
+    cdatasetNames= None
 
     def __init__(self, _params, _compiler='omc'):
         '''
@@ -40,21 +41,30 @@ class StreamH5File(object):
     def get_cgroup(self):
         return self.cgroup
 
-    def get_cdataset(self):
-        return self.cdataset
+    def get_cdataSetValues(self):
+        return self.cdatasetValues
+    
+    def get_cdataSetNames(self):
+        return self.cdatasetNames
 
     def set_cgroup(self, value):
         self.cgroup = value
 
 
-    def set_cdataset(self, value):
-        self.cdataset = value
+    def set_cdataSetValues(self, value):
+        self.cdatasetValues = value
+        
+    def set_cdataSetNames(self, value):
+        self.cdatasetNames = value
 
     def del_cgroup(self):
         del self.cgroup
         
-    def del_cdataset(self):
-        del self.cdataset
+    def del_cdataSetNames(self):
+        del self.cdatasetNames
+        
+    def del_cdataSetValues(self):
+        del self.cdatasetValues
 
         
     def get_senyal(self, _variable):
@@ -72,7 +82,7 @@ class StreamH5File(object):
             csenyal.set_signalRect(self.cmatfile[nameVarTime], self.cmatfile[_nameR], self.cmatfile[_nameI])
         else:
             ''' array of 0 of the same length as samples '''
-            emptyarray= [0 for x in self.cmatfile[nameVarTime]]
+            emptyarray= [-1 for x in self.cmatfile[nameVarTime]]
             csenyal.set_signalRect(self.cmatfile[nameVarTime], self.cmatfile[_nameR], emptyarray)
             
         self.dsenyal[_variable]= csenyal
@@ -88,7 +98,7 @@ class StreamH5File(object):
             csenyal.set_signalPolar(self.cmatfile[nameVarTime], self.cmatfile[_nameM], self.cmatfile[_nameP])
         else:
             ''' array of 0 of the same length as samples '''
-            emptyarray= [0 for x in self.cmatfile[nameVarTime]]
+            emptyarray= [-1 for x in self.cmatfile[nameVarTime]]
             csenyal.set_signalPolar(self.cmatfile[nameVarTime], self.cmatfile[_nameM], emptyarray)
         self.dsenyal[_variable]= csenyal
         
@@ -97,7 +107,8 @@ class StreamH5File(object):
     
     
     group = property(get_cgroup, set_cgroup, del_cgroup, "cgroup's docstring")
-    dataset = property(get_cdataset, set_cdataset, del_cdataset, "cdataset's docstring")
+    datasetValues = property(get_cdataSetValues, set_cdataSetValues, del_cdataSetValues, "cdataset's docstring")
+    datasetNames = property(get_cdataSetNames, set_cdataSetNames, del_cdataSetNames, "cdataset's docstring")
     senyalCmp = property(get_senyal, set_senyalRect, del_senyal, "signalold's docstring")
     senyalPol = property(get_senyal, set_senyalPolar, del_senyal, "signalold's docstring")
     
@@ -124,6 +135,10 @@ class InputH5Stream(StreamH5File):
     def open_h5(self):
         ''' Opens and existing .h5 file in reading mode '''
         self.ch5file= h5.File(self.cfileName, 'r')
+        
+    def open_exth5(self, _sourceH5):
+        ''' Opens and existing .h5 file in reading mode '''
+        self.ch5file= h5.File(_sourceH5, 'r')
          
     def load_h5(self, _network, _component, _variable):
         ''' 
@@ -134,7 +149,7 @@ class InputH5Stream(StreamH5File):
         '''
         # load data into internal dataset
         self.cgroup= self.ch5file[_network]
-        self.cdataset= self.cgroup[_component+'_values']
+        self.cdatasetValues= self.cgroup[_component+'_values']
         self.cdatasetNames= self.cgroup[_component+'_items']
         idx= 1
         for item in self.cdatasetNames:

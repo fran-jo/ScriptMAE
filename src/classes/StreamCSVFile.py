@@ -3,8 +3,8 @@ Created on 7 apr 2015
 
 @author: fragom
 '''
-from numpy import angle,absolute
-import time, datetime
+import time
+from datetime import datetime
 import pandas as panda
 from data import signal
 
@@ -44,7 +44,7 @@ class StreamCSVFile(object):
                                     list(self.ccsvFile[_nameM]), list(self.ccsvFile[_nameP]))
         else:
             ''' array of 0 of the same length as samples '''
-            emptyarray= [0 for x in self.ccsvFile['Timestamp']]
+            emptyarray= [-1 for x in self.ccsvFile['Timestamp']]
             csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
                                     list(self.ccsvFile[_nameM]), emptyarray)
         csenyal.set_ccomponent(_variable)    
@@ -57,31 +57,10 @@ class StreamCSVFile(object):
     senyalPol = property(get_senyal, set_senyalPolar, del_senyal, "signalold's docstring")
     
     def timestamp2sample(self, _variable):
-#         print self.dsenyal[_variable].get_sampleTime()
-        tiempos= [time.strptime(x,"%Y/%m/%d %H:%M:%S.%f") for x in self.dsenyal[_variable].get_sampleTime()]
-        print 'len(tiempos)', len(tiempos) #aqui ha d'anar el loop
-        timeZero= time.mktime(tiempos[0])
-        timeUno= time.mktime(tiempos[1])
-#         print 'tiempos[0]', tiempos[0], ',', 'tiempos[1]', tiempos[1]
-        print 'timeZero', timeZero, ',', 'timeUno', timeUno
-#         c= tiempos[1] - tiempos[0]
-        c= timeUno - timeZero
-        s= divmod(c.days * 86400 + c.seconds, 60)
-        print 'c.microseconds', c.microseconds
-        print 'c.microseconds/1000', c.microseconds/1000
+        tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") for x in self.dsenyal[_variable].get_sampleTime()]
         sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
-        sampletime= []
-        for t in tiempos:
-            milis= (t- tiempos[0]).microseconds/1000
-            sampletime.append(milis)
-        print 'sampletime'
-        print sampletime
+#         print sampletime
         return sampletime
-         
-        senyal= [(time.mktime(x)- timeZero)*1000 for x in tiempos]
-        print senyal
-        print senyal
-        return senyal
     
     def pmu_from_cmp(self, a_instance):
         '''Given an instance of A, return a new instance of B.'''
@@ -112,7 +91,7 @@ class InputCSVStream(StreamCSVFile):
                                     list(self.ccsvFile[_nameM]), list(self.ccsvFile[_nameP]))
         else:
             ''' array of 0 of the same length as samples '''
-            emptyarray= [0 for x in self.ccsvFile['Timestamp']]
+            emptyarray= [-1 for x in self.ccsvFile['Timestamp']]
             csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
                                     list(self.ccsvFile[_nameM]), emptyarray)
         csenyal.set_ccomponent(_variable)    
