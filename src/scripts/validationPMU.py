@@ -32,7 +32,7 @@ class Validation():
         self.measurements= []
         
         
-    def load_sources(self, _sourceCSV, _sourceH5):
+    def load_sources(self, _sourceCSV, _sourceH5, _model, _component, _name):
         ''' 
         _sourceCSV: .csv file, i.e. ./res/File_8.csv
         _sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
@@ -54,9 +54,8 @@ class Validation():
         if (_sourceH5 != ''):
             self.ioh5= InputH5Stream(_sourceH5)
             self.ioh5.open_h5()
-            self.ioh5.load_h5('df', 'block0', 'bus9.v')
+            self.ioh5.load_h5(_model, _component, _name)
 #             print self.ioh5.get_senyal('block0')
-        return (self.iocsv.get_senyal('KTHLAB:EMLAB'), self.ioh5.get_senyal('block0'))
         
     def load_pandaSource(self, _sourceCSV, _sourceH5, _modelName, _component, _variable):
         '''
@@ -67,9 +66,14 @@ class Validation():
         csvData.to_hdf(_sourceH5,'df', complib='zlib', complevel=9)  
         self.ioh5.open_exth5(_sourceH5)
         self.ioh5.open_load_h5(_modelName, _component, _variable)
-        return self.iocsv.get_senyal('KTHLAB:EMLAB'), self.ioh5.get_senyal('block0')
-        
+#         return self.iocsv.get_senyal('KTHLAB:EMLAB'), self.ioh5.get_senyal('block0')
 #         return (csvData, self.ioh5.get_senyal('block0'))
+
+    def get_sources(self, _measurement, _component):
+        ''' _measurement> 'KTHLAB:EMLAB'
+        _component> 'block0'
+        '''
+        return [self.iocsv.get_senyal(_measurement), self.ioh5.get_senyal(_component)]
     
     def method_ME(self, _measSignal, _simSignal):
         ''' TODO: create a subset of signals from original signal in object senyal
@@ -120,10 +124,15 @@ class Validation():
 
 def main(argv):
     smith= Validation(sys.argv[3])
+    ''' model> 'df', 
+    component> 'block0', 
+    signal> 'bus9.v'
+    '''
 #     smith.load_sources(sys.argv[1], sys.argv[2], 'model', 'component', 'signal')
-    smith.load_pandaSource(sys.argv[1], sys.argv[2], 'model', 'component', 'signal')
+    smith.load_pandaSource(sys.argv[1], sys.argv[2], 'df', 'block0', 'bus9.v')
+    [measurement, simulation]= smith.get_sources('KTHLAB:EMLAB', 'block0')
     ''' TODO: function for each method '''
-    method_ME(_signalPMU, _signalSimulation)
+    smith.method_ME(measurement, simulation)
     ''' TODO: how to indicate the method to use? input parameter'''
 
 if __name__ == '__main__':
