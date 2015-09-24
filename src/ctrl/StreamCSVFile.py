@@ -86,12 +86,12 @@ class InputCSVStream(StreamCSVFile):
         '''
         csenyal= signal.SignalPMU()
         if (_nameP != []):
-            csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
+            csenyal.set_signalPolar(self.ccsvFile['Time'], 
                                     list(self.ccsvFile[_nameM]), list(self.ccsvFile[_nameP]))
         else:
             ''' array of 0 of the same length as samples '''
-            emptyarray= [-1 for x in self.ccsvFile['Timestamp']]
-            csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
+            emptyarray= [-1 for x in self.ccsvFile['Time']]
+            csenyal.set_signalPolar(self.ccsvFile['Time'], 
                                     list(self.ccsvFile[_nameM]), emptyarray)
         csenyal.set_ccomponent(_variable)    
         self.dsenyal[_variable]= csenyal

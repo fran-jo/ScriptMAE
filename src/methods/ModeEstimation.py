@@ -6,6 +6,7 @@ Created on Sep 23, 2015
 import os, platform
 import numpy as np
 from scipy import signal
+import win32com.client
 
 class ModeEstimation(object):
     '''
@@ -19,9 +20,9 @@ class ModeEstimation(object):
         '''
         Constructor
         '''
-        if platform.system()== 'Windows':
-            self.win = __import__('win32com.client')
-            '''Opening MATLAB application'''
+#         if platform.system()== 'Windows':
+#             self.win = __import__('win32com.client')
+#             '''Opening MATLAB application'''
         
     def get_order(self):
         return self.order
@@ -41,7 +42,7 @@ class ModeEstimation(object):
         '''
         magnitude= _signal.get_signalMag()
         '''Opening MATLAB application'''
-        h = self.win.Dispatch('matlab.application')
+        h = win32com.client.Dispatch('matlab.application')
         ''' Order of the mode estimation function from run configuration Arguments'''
         h.Execute(self.order)       
         '''Sending the selected signal i.e Magnitude of Voltage to MATLAB'''
@@ -49,6 +50,7 @@ class ModeEstimation(object):
         '''Transposing the array inside the MATLAB'''
         h.Execute("transpose=ans.';")
         '''performing mode estimation for the magnitude of signal Voltage of order(sys.argv[1])in MATLAB'''
+        '''TODO: Check that matlab is open in a correct way'''
         h.Execute("[mode_freq, mode_damp]=mode_est_basic_fcn(transpose, order);")
         self.mode_freq=h.Execute("disp([mode_freq])")
         self.mode_damp=h.Execute("disp([mode_damp])")

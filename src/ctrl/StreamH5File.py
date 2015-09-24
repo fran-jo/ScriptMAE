@@ -152,18 +152,19 @@ class InputH5Stream(StreamH5File):
         self.cdatasetValues= self.cgroup[_component+'_values']
         self.cdatasetNames= self.cgroup[_component+'_items']
         idx= 1
-        for item in self.ndataset:
+        for item in self.cdatasetNames:
             print idx, item
             if (item == _variable):
-                if self.vdataset.attrs['coord']== 'polar':
+                if self.cdatasetValues.attrs['coord']== 'polar':
                     print 'polar'
                     csenyal= signal.SignalPMU()
-                    csenyal.set_signalPolar(self.vdataset[:,0], self.vdataset[:,idx], self.vdataset[:,idx+1])
+                    csenyal.set_signalPolar(self.cdatasetValues[:,0], self.cdatasetValues[:,idx], self.cdatasetValues[:,idx+1])
                 else:
                     print 'complex'
                     csenyal= signal.Signal()
-                    csenyal.set_signalRect(self.vdataset[:,0], self.vdataset[:,idx], self.vdataset[:,idx+1])
-                self.dsenyal[_component]= csenyal
+                    csenyal.set_signalRect(self.cdatasetValues[:,0], self.cdatasetValues[:,idx], self.cdatasetValues[:,idx+1])
+                csenyal.set_ccomponent(_variable)
+                self.dsenyal[_variable]= csenyal
             idx+= 1
             
     def close_h5(self):

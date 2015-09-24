@@ -6,12 +6,12 @@ Created on Sep 03, 2015
 import numpy as np
 import ast
 import sys
-from classes.ModeEstimation import ModeEstimation
+from methods.ModeEstimation import ModeEstimation
 from data.signal import SignalPMU
-# from classes import PhasorMeasH5, PhasorMeasCSV
-from classes.StreamCSVFile import InputCSVStream
-from classes.StreamH5File import InputH5Stream
-from classes.OutputModelVar import OutputModelVar
+# from ctrl import PhasorMeasH5, PhasorMeasCSV
+from ctrl.StreamCSVFile import InputCSVStream
+from ctrl.StreamH5File import InputH5Stream
+from ctrl.OutputModelVar import OutputModelVar
 import modred as MR
 import h5py
 import time
@@ -36,6 +36,10 @@ class Validation():
         ''' 
         _sourceCSV: .csv file, i.e. ./res/File_8.csv
         _sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
+        _model: name of the model , for retrieving the h5.group
+        _component: name of the component, for retrieving the h5.dataset
+        _name: name of the signal, for retrieving the signal values from the h5.dataset and 
+        signal values from the .csv file
         '''
         if (_sourceCSV != ''):
             self.iocsv= InputCSVStream(_sourceCSV, ',')
@@ -49,13 +53,13 @@ class Validation():
                 measSignals= meas.split(',')
 #                 print measSignals[0], ' - ', measSignals[1]
                 self.iocsv.load_csvValues(name, measSignals[0], measSignals[1])
-            self.iocsv.timestamp2sample(name)
-#             print self.iocsv.get_senyal(name)
+#             self.iocsv.timestamp2sample(name)
+            print self.iocsv.get_senyal(name).__str__()
         if (_sourceH5 != ''):
             self.ioh5= InputH5Stream(_sourceH5)
             self.ioh5.open_h5()
             self.ioh5.load_h5(_model, _component, _name)
-#             print self.ioh5.get_senyal('block0')
+            print self.ioh5.get_senyal(_name).__str__()
         
     def load_pandaSource(self, _sourceCSV, _sourceH5, _modelName, _component, _variable):
         '''
@@ -90,46 +94,43 @@ class Validation():
         print 'Model Frequency ', meEngine.get_modeFrequency()
         print 'Model Damping  ', meEngine.get_modeDamping()
         
-    def method_ERA(self, _measSignal, _simSignal, _winSamples):
-        """ opening the h5 file """
-        #File1=h5py.File('Simu.h5','r')
-        ''' using solution from load_pandaSource '''
-#         h5Data= h5py.File(_sourceH5,'r')
-        senyal = self.ioh5.get_senyal('block0')
-        ''' format of the signal (sampletime, real/magnintude, imag/polar) '''
-        """ getting the data set from the h5 file """     
-        #d1=File1[u'subgroup']
-#         d1= h5Data[u'df']
-        """ selecting the vector or array from the h5 file """
-        #d2=d1['highVoltage']
-#         d2=d1['block0_values']
-#         d3=d2[:,1]
-        #print d3[0:100]
-        ''' TODO: create a subset of signals from original signal in object senyal
-        call era method with each subset, inside a loop '''
-        a,b,c =MR.compute_ERA_model(d3[0:5000],3)
-#         while ()
-#             a,b,c =MR.compute_ERA_model(d3[0:_winSamples],3)
-        """a,b,c =MR.compute_ERA_model(array,5) here 2 is the matrix size of A, B, C  """
-         
-        print 'printing a matrix'
-        #print 'printing matrix a with dimensation ', a.shape
-        print a
-        print 'printing b matrix'
-      
-        print b
-        print 'printing c matrix'
-        print c
-        """ creating the file to write the ERA results """
-        File2 = h5py.File('noisesignal.h5','w')# 
-         
-         
-        dset3 = File2.create_dataset("ERA_A", data=a)
-        dset4 = File2.create_dataset("ERA_B", data=b)
-        dset5 = File2.create_dataset("ERA_C", data=c)
-    
-#     def method_whatever(self):
-#         pass    
+#     def method_ERA(self, _measSignal, _simSignal, _winSamples):
+#         """ opening the h5 file """
+#         #File1=h5py.File('Simu.h5','r')
+#         ''' using solution from load_pandaSource '''
+# #         h5Data= h5py.File(_sourceH5,'r')
+#         senyal = self.ioh5.get_senyal('block0')
+#         ''' format of the signal (sampletime, real/magnintude, imag/polar) '''
+#         """ getting the data set from the h5 file """     
+#         #d1=File1[u'subgroup']
+# #         d1= h5Data[u'df']
+#         """ selecting the vector or array from the h5 file """
+#         #d2=d1['highVoltage']
+# #         d2=d1['block0_values']
+# #         d3=d2[:,1]
+#         #print d3[0:100]
+#         ''' TODO: create a subset of signals from original signal in object senyal
+#         call era method with each subset, inside a loop '''
+#         a,b,c =MR.compute_ERA_model(d3[0:5000],3)
+# #         while ()
+# #             a,b,c =MR.compute_ERA_model(d3[0:_winSamples],3)
+#         """a,b,c =MR.compute_ERA_model(array,5) here 2 is the matrix size of A, B, C  """
+#          
+#         print 'printing a matrix'
+#         #print 'printing matrix a with dimensation ', a.shape
+#         print a
+#         print 'printing b matrix'
+#       
+#         print b
+#         print 'printing c matrix'
+#         print c
+#         """ creating the file to write the ERA results """
+#         File2 = h5py.File('noisesignal.h5','w')# 
+#          
+#          
+#         dset3 = File2.create_dataset("ERA_A", data=a)
+#         dset4 = File2.create_dataset("ERA_B", data=b)
+#         dset5 = File2.create_dataset("ERA_C", data=c)   
 
 def main(argv):
     smith= Validation(sys.argv[3])
@@ -137,11 +138,11 @@ def main(argv):
     component> 'block0', 
     signal> 'bus9.v'
     '''
-#     smith.load_sources(sys.argv[1], sys.argv[2], 'model', 'component', 'signal')
-    smith.load_pandaSource(sys.argv[1], sys.argv[2], 'df', 'block0', 'bus9.v')
-    [measurement, simulation]= smith.get_sources('KTHLAB:EMLAB', 'block0')
+    smith.load_sources(sys.argv[1], sys.argv[2], 'df', 'block0', 'bus9.v')
+#     smith.load_pandaSource(sys.argv[1], sys.argv[2], 'df', 'block0', 'bus9.v')
+    [measurement, simulation]= smith.get_sources('bus9.V', 'bus9.v')
     ''' TODO: function for each method '''
-    smith.method_ME(measurement, simulation)
+    smith.method_ME(None, simulation, 10)
     ''' TODO: how to indicate the method to use? input parameter'''
 
 if __name__ == '__main__':

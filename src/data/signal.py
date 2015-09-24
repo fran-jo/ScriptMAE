@@ -4,6 +4,7 @@ Created on 26 maj 2015
 @author: fragom
 '''
 import itertools
+from __builtin__ import str
 
 class Signal(object):
     '''
@@ -85,6 +86,12 @@ class Signal(object):
     signalCmp = property(get_signal, set_signalRect, del_signal, "csignal_a's docstring")
     component = property(get_ccomponent, set_ccomponent, del_ccomponent, "ccomponent's docstring")
 
+    def __str__(self):
+        estrin= self.ccomponent+ " "+ str(self.csamples)+ " samples: "
+        return estrin
+    
+    def __repr__(self):
+        return self.__str__()
         
 from math import sqrt
 from numpy import arctan2, abs, sin, cos
