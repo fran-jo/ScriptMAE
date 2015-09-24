@@ -4,7 +4,8 @@ Created on Sep 23, 2015
 @author: fran_jo
 '''
 import os, platform
-
+import numpy as np
+from scipy import signal
 
 class ModeEstimation(object):
     '''
@@ -55,7 +56,25 @@ class ModeEstimation(object):
         print 'mode_freq', self.mode_freq
         print 'mode_damp', self.mode_damp
     
-    def modeEstimationPY(self, _signal):
-        pass
     
+    def modeEstimationPY(self, _signal):
+        '''
+        low pass filtering for mode estimation function 
+        array must be declared and passed through the function 
+        '''
+        b,a= signal.iirfilter(17, Wn=0.1, rp=0.1, rs=50, btype='lowpass', analog=True, ftype='cheby2')
+        senalFiltrada= signal.lfilter(b,a, _signal)
+        angularHz, self.model_freq= signal.freqs(b, a, senalFiltrada)
+        
+        print 'mode_freq', self.mode_freq
+    
+    def dnsample(self,y,order):
+        return y[::order];
+    
+    def transpose_data(self,y):
+        return y[:,None];
+    
+    """ similar like find """
+    def find_from_sample(self,y,find_what):
+        return np.where(y==find_what)[0];
     
