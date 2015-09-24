@@ -6,9 +6,11 @@ Created on 4 jun 2015
 
 from classes.StreamCSVFile import InputCSVStream
 from datetime import datetime 
-import time
+import time, os, platform
 
 if __name__ == '__main__':
+    
+    print 'platform.system() ', platform.system()
     ''' load names from .csv '''
     csvpmu= InputCSVStream('./res/File_8.csv', ',')
 #     print csvpmu.load_csvHeader()

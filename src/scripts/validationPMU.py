@@ -6,7 +6,7 @@ Created on Sep 03, 2015
 import numpy as np
 import ast
 import sys
-import win32com.client
+from classes.ModeEstimation import ModeEstimation
 from data.signal import SignalPMU
 # from classes import PhasorMeasH5, PhasorMeasCSV
 from classes.StreamCSVFile import InputCSVStream
@@ -75,11 +75,20 @@ class Validation():
         '''
         return [self.iocsv.get_senyal(_measurement), self.ioh5.get_senyal(_component)]
     
-    def method_ME(self, _measSignal, _simSignal):
+    def method_ME(self, _measSignal, _simSignal, _order):
         ''' TODO: create a subset of signals from original signal in object senyal
         call mode estimation method with each subset, inside a loop '''
+        meEngine= ModeEstimation()
+        meEngine.set_order(_order)
+        ''' 1) mode Estimation with PMU signal '''
+        if _measSignal!= None:
+            meEngine.modeEstimationMat(_measSignal)
+        ''' 2) mode Estimation with simulation signal '''
+        if _simSignal!= None:
+            meEngine.modeEstimationMat(_simSignal)
         ''' TODO: pass the whole signal to Vedran mode estimation '''
-        pass
+        print 'Model Frequency ', meEngine.get_modeFrequency()
+        print 'Model Damping  ', meEngine.get_modeDamping()
         
     def method_ERA(self, _measSignal, _simSignal, _winSamples):
         """ opening the h5 file """
