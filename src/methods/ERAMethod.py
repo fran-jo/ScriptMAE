@@ -36,3 +36,8 @@ class ERAMethod(object):
         print b
         print 'printing c matrix'
         print c
+        """ creating the file to write the ERA results """
+        File2 = h5py.File('noisesignal.h5','w')# 
+        dset3 = File2.create_dataset("ERA_A", data=a)
+        dset4 = File2.create_dataset("ERA_B", data=b)
+        dset5 = File2.create_dataset("ERA_C", data=c) 
