@@ -7,6 +7,7 @@ import numpy as np
 from scipy import signal
 import win32com.client
 from mlab import mlabwrap
+import subprocess
 
 class ModeEstimation(object):
     '''
@@ -36,7 +37,8 @@ class ModeEstimation(object):
     def get_modeDamping(self):
         return self.mode_damp
     
-#     def modeEstimationMat(self, _signal):
+    def modeEstimationMat(self, _name, _signal):
+        subprocess.call(['java','-jar', _name])
 #         ''' 
 #         _signal is instance of object src.data.signal
 #         '''

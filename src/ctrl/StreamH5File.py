@@ -140,7 +140,7 @@ class InputH5Stream(StreamH5File):
         ''' Opens and existing .h5 file in reading mode '''
         self.ch5file= h5.File(_sourceH5, 'r')
          
-    def load_h5(self, _network, _component, _variable):
+    def load_h5(self, _network, _component):
         ''' 
         Loads signal data from a specific variable form a specific component 
         _network name of the entire network model or area inside the model
@@ -154,19 +154,100 @@ class InputH5Stream(StreamH5File):
         idx= 1
         for item in self.cdatasetNames:
             print idx, item
-            if (item == _variable):
-                if self.cdatasetValues.attrs['coord']== 'polar':
-                    print 'polar'
-                    csenyal= signal.SignalPMU()
-                    csenyal.set_signalPolar(self.cdatasetValues[:,0], self.cdatasetValues[:,idx], self.cdatasetValues[:,idx+1])
-                else:
-                    print 'complex'
-                    csenyal= signal.Signal()
-                    csenyal.set_signalRect(self.cdatasetValues[:,0], self.cdatasetValues[:,idx], self.cdatasetValues[:,idx+1])
-                csenyal.set_ccomponent(_variable)
-                self.dsenyal[_variable]= csenyal
-            idx+= 1
+#             if (item == _variable):
+#             if self.cdatasetValues.attrs['coord']== 'polar':
+#                 print 'polar'
+#                 csenyal= signal.SignalPMU()
+#                 csenyal.set_signalPolar(self.cdatasetValues[:,0], self.cdatasetValues[:,idx], self.cdatasetValues[:,idx+1])
+#             else:
+#                 print 'complex'
+            csenyal= signal.Signal()
+            csenyal.set_signalRect(self.cdatasetValues[:,0], self.cdatasetValues[:,idx], self.cdatasetValues[:,idx+1])
+            csenyal.set_ccomponent(_component)
+            self.dsenyal[_component]= csenyal
+            idx+= 2
             
     def close_h5(self):
+        self.ch5file.close()
+        
+
+class OutputH5Stream(StreamH5File):
+    '''
+    Writes data into a hdf5 file. The structure must have 
+    1) dataset to store signal names
+    2) dataset to store signal values, per pairs, column 1: re/mag; column2: im/pol 
+    '''
+    def __init__(self, _params, _compiler):
+        super(OutputH5Stream, self).__init__(_params, _compiler)
+        
+    def open_h5(self, _network):
+        ''' Opens the h5 file in append mode '''
+        self.ch5file= h5.File(self.cfileName, 'a')
+        if not _network in self.ch5file:
+            self.cgroup= self.ch5file.create_group(_network)
+        else:
+            self.cgroup= self.ch5file[_network]
+            
+    def save_h5Values(self, _component, _variable):
+        ''' Creates the .h5, in append mode, with an internal structure for signal values.
+        Saves signal data from a specific model. It creates an internal dataset, into the current 
+        group of the current .h5, with the name of the _component parameter
+        _component indicates the name of component where the data is collected from 
+        _variable is the name of the signal to be saved '''
+        # create datasets
+        if not _component+'_values' in self.cgroup:
+            ''' TODO: dataset size according to signals of the component '''
+#             self.cdatasetValues= self.cgroup.create_dataset(_component+'_values', 
+#                                                       (self.dsenyal[_component].get_csamples(),len(self.dsenyal)*2+1),
+#                                                       chunks=(100,3))
+            self.cdatasetValues= self.cgroup.create_dataset(_component+'_values', 
+                                                      (self.dsenyal[_component].get_csamples(),3),
+                                                      chunks=(100,3))
+        else:
+            self.cdatasetValues= self.cgroup[_component+'_values']
+        column= 1
+        ''' signals can store two type of data, complex or polar, values are saved per pairs '''
+#         for lasenyal in self.dsenyal[_component]:
+        lasenyal= self.dsenyal[_component]
+        self.cdatasetValues[:,0]= lasenyal.get_sampleTime()
+        if isinstance(lasenyal, signal.SignalPMU):  
+            self.cdatasetValues[:,column]= lasenyal.get_signalMag()
+            column+= 1
+            self.cdatasetValues[:,column]= lasenyal.get_signalPhase()
+        else: 
+            self.cdatasetValues[:,column]= lasenyal.get_signalReal()
+            column+= 1
+            self.cdatasetValues[:,column]= lasenyal.get_signalImag()
+#             column+= 1
+    
+    def save_h5Names(self, _component, _variable):
+        ''' Creates the .h5, in append mode, with an internal structure for signal names.
+        Saves signal names from a specific model. It creates an internal dataset into the current
+        group of the current .h5. 
+        _component indicates the name of component where the data is collected from 
+        _variable list of signal names from the _component'''
+#         print 'len ', len(_variable)+ 1
+        dt = h5.special_dtype(vlen=unicode)
+        if not _component+'_items' in self.cgroup:
+            ''' TODO: dataset size according to signals of the component '''
+            self.datasetNames= self.cgroup.create_dataset(_component+'_items', (3,len(_variable)+1), dtype=dt)
+        else:
+            self.datasetNames= self.cgroup[_component+'_items']
+        #print "Dataset dataspace is", self.cdatasetNames.shape
+        metaSignal= [u"sampletime", u"s", u"int"]
+        self.datasetNames[:,0]= metaSignal
+        row= 1
+        for name in _variable:
+#             print row, ' ', str(name)
+#             metaSignal= [str(name), u"p.u.", u"polar"]
+#             if isinstance(self.dsenyal[name], signal.SignalPMU):
+#                 metaSignal= [str(name), u"p.u.", u"polar"]
+#             else:
+#                 metaSignal= [str(name), u"p.u.", u"complex"]   
+            self.cdatasetNames[:,row]= str(name)
+            row+= 1
+            
+    def close_h5(self):
+        # close file
         self.ch5file.close()
         

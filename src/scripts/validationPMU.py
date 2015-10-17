@@ -7,12 +7,12 @@ import sys
 from methods.ModeEstimation import ModeEstimation
 from methods.ERAMethod import ERAMethod
 from data.signal import SignalPMU
-# from ctrl import PhasorMeasH5, PhasorMeasCSV
 from ctrl.StreamCSVFile import InputCSVStream
 from ctrl.StreamH5File import InputH5Stream
 from ctrl.OutputModelVar import OutputModelVar
-import modred as MR
+import modred as mr
 import pandas as pd
+import numpy
 
 class Validation():
     ''' class for validation, things to do
@@ -28,7 +28,7 @@ class Validation():
         print self.outputs.get_varList()
         self.measurements= []
         
-    def load_sources(self, _sourceCSV, _sourceH5, _model, _component, _name):
+    def load_sourcesCSV(self, _sourceCSV, _component, _signalComplex):
         ''' 
         _sourceCSV: .csv file, i.e. ./res/File_8.csv
         _sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
@@ -44,18 +44,20 @@ class Validation():
             meas signals/variables that name the signal of a measurement
             i.e: name KTHLAB:EMLAB; meas KTHLAB:EMLAB:Magnitude,KTHLAB:EMLAB:Angle 
             i.e: name bus1.V; meas bus1.v,bus1.angle '''
-            for name, meas in self.outputs.get_varList():
-                self.measurements.append(name)
-                measSignals= meas.split(',')
-#                 print measSignals[0], ' - ', measSignals[1]
-                self.iocsv.load_csvValues(name, measSignals[0], measSignals[1])
-#             self.iocsv.timestamp2sample(name)
-            print self.iocsv.get_senyal(name).__str__()
+            self.iocsv.load_csvValues(_component, _signalComplex[0], _signalComplex[1])
+            print 'PMU Signal ', self.iocsv.get_senyal(_component).__str__()
+
+    def load_sourcesH5(self, _sourceH5, _model, _component):
+        ''' 
+        _sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
+        _model: name of the model , for retrieving the h5.group
+        _component: name of the component, for retrieving the h5.dataset
+        '''
         if (_sourceH5 != ''):
             self.ioh5= InputH5Stream(_sourceH5)
             self.ioh5.open_h5()
-            self.ioh5.load_h5(_model, _component, _name)
-            print self.ioh5.get_senyal(_name).__str__()
+            self.ioh5.load_h5(_model, _component)
+            print 'Simulation Signal ', self.ioh5.get_senyal(_component).__str__()
         
     def load_pandaSource(self, _sourceCSV, _sourceH5, _modelName, _component, _variable):
         '''
@@ -82,8 +84,8 @@ class Validation():
         meEngine.set_order(_order)
         ''' 1) mode Estimation with PMU signal '''
         if _measSignal!= None:
-#             meEngine.modeEstimationMat(_measSignal)
-            meEngine.modeEstimationPY(_measSignal)
+            meEngine.modeEstimationMat('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/lib/mes.jar',_measSignal)
+#             meEngine.modeEstimationPY(_measSignal)
         ''' 2) mode Estimation with simulation signal '''
         if _simSignal!= None:
 #             meEngine.modeEstimationMat(_simSignal)
@@ -93,27 +95,46 @@ class Validation():
         print 'Model Damping  ', meEngine.get_modeDamping()
         
     def method_ERA(self, _measSignal, _simSignal):
-        meEngine= ERAMethod()
-        if _measSignal!= None:
-            senyal= _measSignal.get_signalMag() 
-        if _simSignal!= None:
-            senyal= _simSignal.get_signalReal()
-        meEngine.eraMethodPY(senyal)
-        
+        '''
+        _measSignal as output
+        _simSignal as input
+        '''
+        '''TODO: match sampletime from meas with sim '''
+#         if (_measSignal.get_sampleTime()!= _simSignal.get_sampleTime()):
+        timeSignal= _measSignal.get_sampleTime()
+        if _measSignal!= None and _simSignal!= None:
+            outSignal= _measSignal.get_signalMag()
+            inSignal= _simSignal.get_signalReal()
+        else:
+            if _measSignal!= None:
+                outSignal= _measSignal.get_signalMag()
+                inSignal= _measSignal.get_signalMag()
+            if _simSignal!= None:
+                outSignal= _simSignal.get_signalReal()
+                inSignal= _simSignal.get_signalReal()
+        num_states = 2
+#         a,b,c = mr.compute_ERA_model([timeSignal,outSignal,inSignal], num_states)
+        a,b,c = mr.compute_ERA_model(numpy.array(outSignal[0:1000]), num_states)
+        print 'Measurements: '
+        print 'A= ', a
+        print 'B= ', b
+        print 'C= ', c
+        a,b,c = mr.compute_ERA_model(numpy.array(inSignal), num_states)
+        print 'Simulation: '
+        print 'A= ', a
+        print 'B= ', b
+        print 'C= ', c
 
 def main(argv):
     smith= Validation(sys.argv[3])
-    ''' model> 'df', 
-    component> 'block0', 
-    signal> 'bus9.v'
-    '''
-    smith.load_sources(sys.argv[1], sys.argv[2], 'df', 'block0', 'bus9.v')
-#     smith.load_pandaSource(sys.argv[1], sys.argv[2], 'df', 'block0', 'bus9.v')
-    [measurement, simulation]= smith.get_sources('bus9.V', 'bus9.v')
-    if (sys.argv[4]!= '-me'):
-        smith.method_ME(None, simulation, 10)
-    if (sys.argv[4]!= '-era'):
-        smith.method_ERA(None, simulation)
+    ''' TODO: load_sources parameters should come from GUI / manually, when scritping '''
+    smith.load_sourcesCSV(sys.argv[1], 'pmu9', ['bus9.v','bus9.anglev'])
+    smith.load_sourcesH5(sys.argv[2], 'IEEENetworks2.IEEE_9Bus', 'pmu9')
+    [measurement, simulation]= smith.get_sources('pmu9', 'pmu9')
+    if (sys.argv[4]== '-me'):
+        smith.method_ME(simulation, None, 10)
+    if (sys.argv[4]== '-era'):
+        smith.method_ERA(measurement, simulation)
     ''' TODO: how to indicate the method to use? input parameter'''
 
 if __name__ == '__main__':

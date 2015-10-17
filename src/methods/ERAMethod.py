@@ -17,7 +17,7 @@ class ERAMethod(object):
     lambdau= []
     num_vecs= 0
     
-    def __init__(self, params):
+    def __init__(self):
         '''
         Constructor
         '''
@@ -27,7 +27,8 @@ class ERAMethod(object):
     
     def eraMethodPY(self, _signal):
         self.num_vecs = 4
-        
+        '''TODO: we need to compute A,B, C matrices from signal '''
+        '''TODO: pass matrices to first parameter of ERA_model function'''
         '''what is eigenvalues?'''
         a,b,c = mr.compute_ERA_model(_signal, self.num_vecs)
         print 'printing a matrix'
@@ -36,8 +37,3 @@ class ERAMethod(object):
         print b
         print 'printing c matrix'
         print c
-        """ creating the file to write the ERA results """
-        File2 = h5py.File('noisesignal.h5','w')# 
-        dset3 = File2.create_dataset("ERA_A", data=a)
-        dset4 = File2.create_dataset("ERA_B", data=b)
-        dset5 = File2.create_dataset("ERA_C", data=c) 
