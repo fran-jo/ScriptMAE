@@ -5,14 +5,13 @@ Created on Sep 03, 2015
 '''
 import sys
 from methods.ModeEstimation import ModeEstimation
-from methods.ERAMethod import ERAMethod
-from data.signal import SignalPMU
 from ctrl.StreamCSVFile import InputCSVStream
 from ctrl.StreamH5File import InputH5Stream
 from ctrl.OutputModelVar import OutputModelVar
 import modred as mr
 import pandas as pd
 import numpy
+
 
 class Validation():
     ''' class for validation, things to do
@@ -31,11 +30,9 @@ class Validation():
     def load_sourcesCSV(self, _sourceCSV, _component, _signalComplex):
         ''' 
         _sourceCSV: .csv file, i.e. ./res/File_8.csv
-        _sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
         _model: name of the model , for retrieving the h5.group
         _component: name of the component, for retrieving the h5.dataset
-        _name: name of the signal, for retrieving the signal values from the h5.dataset and 
-        signal values from the .csv file
+        _signalComplex: array with pair name of signals [meas, angle] that refer to a complex signal
         '''
         if (_sourceCSV != ''):
             self.iocsv= InputCSVStream(_sourceCSV, ',')
@@ -85,14 +82,12 @@ class Validation():
         ''' 1) mode Estimation with PMU signal '''
         if _measSignal!= None:
             meEngine.modeEstimationMat('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/lib/mes.jar',_measSignal)
-#             meEngine.modeEstimationPY(_measSignal)
         ''' 2) mode Estimation with simulation signal '''
         if _simSignal!= None:
-#             meEngine.modeEstimationMat(_simSignal)
-            meEngine.modeEstimationPY(_measSignal)
+            meEngine.modeEstimationPY(_simSignal.get_signalReal())
         ''' TODO: pass the whole signal to Vedran mode estimation '''
-        print 'Model Frequency ', meEngine.get_modeFrequency()
-        print 'Model Damping  ', meEngine.get_modeDamping()
+#         print 'Model Frequency ', meEngine.get_modeFrequency()
+#         print 'Model Damping  ', meEngine.get_modeDamping()
         
     def method_ERA(self, _measSignal, _simSignal):
         '''
@@ -132,42 +127,11 @@ def main(argv):
     smith.load_sourcesH5(sys.argv[2], 'IEEENetworks2.IEEE_9Bus', 'pmu9')
     [measurement, simulation]= smith.get_sources('pmu9', 'pmu9')
     if (sys.argv[4]== '-me'):
-        smith.method_ME(simulation, None, 10)
+        smith.method_ME(None, simulation, 5)
     if (sys.argv[4]== '-era'):
         smith.method_ERA(measurement, simulation)
     ''' TODO: how to indicate the method to use? input parameter'''
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    
-#     """ opening the h5 file """
-#     #File1=h5py.File('Simu.h5','r')
-#     File1= h5py.File('PMUdata_Bus1VA2Venam1.h5','r')
-#     
-#     """ getting the data set from the h5 file """     
-#     #d1=File1[u'subgroup']
-#     d1=File1[u'df']
-#     """ selecting the vector or array from the h5 file """
-#     #d2=d1['highVoltage']
-#     d2=d1['block0_values']
-#     d3=d2[:,1]
-#     #print d3[0:100]
-#     a,b,c =MR.compute_ERA_model(d3[0:5000],3)
-#     """a,b,c =MR.compute_ERA_model(array,5) here 2 is the matrix size of A, B, C  """
-#     
-#     print 'printing a matrix'
-#     #print 'printing matrix a with dimensation ', a.shape
-#     print a
-#     print 'printing b matrix'
-#  
-#     print b
-#     print 'printing c matrix'
-#     print c
-#     """ creating the file to write the ERA results """
-#     File2 = h5py.File('noisesignal.h5','w')# 
-#     
-#     
-#     dset3 = File2.create_dataset("ERA_A", data=a)
-#     dset4 = File2.create_dataset("ERA_B", data=b)
-#     dset5 = File2.create_dataset("ERA_C", data=c)
     

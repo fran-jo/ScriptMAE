@@ -67,11 +67,22 @@ class ModeEstimation(object):
         low pass filtering for mode estimation function 
         array must be declared and passed through the function 
         '''
-        b,a= signal.iirfilter(17, Wn=0.1, rp=0.1, rs=50, btype='lowpass', analog=True, ftype='cheby2')
-        senalFiltrada= signal.lfilter(b,a, _signal)
-        angularHz, self.model_freq= signal.freqs(b, a, senalFiltrada)
+        #pas 1 vedran, design filter
+        ''' Wn= length-2 sequence giving the critical frequencies - Fp, Fst parameters from matlab fdesign.lowpass(Fp,Fst,Ap,Ast)
+        rp: maximum ripple in the pass band. (dB) - Ap parameter from matlab fdesign.lowpass(Fp,Fst,Ap,Ast)
+        rs:  minimum attenuation in the stop band. (dB) - Ast parameter from matlab fdesign.lowpass(Fp,Fst,Ap,Ast)
+        '''
+        b, a= signal.iirfilter(self.order, Wn=[2/25,2.5/25], rp=0.1, rs=50, btype='lowpass', analog=True, ftype='cheby2')
+        #pas 2 vedran, apply filter
+        senalFiltrada= signal.lfilter(b, a, _signal)
+        #pas 3 vedran, downsample the signal
+        senyal = signal.decimate(_signal, 10, ftype='iir')
         
-        print 'mode_freq', self.mode_freq
+        #pas 4 vedran, armax, _signal.real or signal.magnitude and signal.sampling data
+        angularHz, responseHz = signal.freqs(b, a, senyal)
+        
+        print 'angular frequency ', angularHz
+        print 'frequency response ', responseHz
     
     def dnsample(self,y,order):
         return y[::order];
