@@ -3,11 +3,12 @@ Created on Sep 23, 2015
 
 @author: fran_jo
 '''
-import numpy as np
+import numpy
 from scipy import signal
-import win32com.client
-from mlab import mlabwrap
-import subprocess
+# import win32com.client
+from mlab.releases import latest_release as matlab
+# import subprocess
+# from pymatbridge import Matlab
 
 class ModeEstimation(object):
     '''
@@ -38,7 +39,21 @@ class ModeEstimation(object):
         return self.mode_damp
     
     def modeEstimationMat(self, _name, _signal):
-        subprocess.call(['java','-jar', _name])
+#         # Using java jar
+#         subprocess.call(['java','-jar', _name])
+#         # Using pymatbridge
+#         mlab = Matlab(matlab=u'C:/Program Files/MATLAB/R2012b/bin/matlab.exe')
+#         mlab.start()
+#         res= mlab.run('./res/mode_est_fcn.m', {'x': _signal.get_sampleTime(), 'y': _signal.get_signalMag(), 'order': 4})
+#         print res['result']
+#         # Stop the MATLAB server
+#         mlab.stop()
+
+        # Using mlabwrap
+        x= numpy.array([_signal.get_signalMag(), _signal.get_sampleTime()])
+        y= numpy.array([5,0,5,1])
+        res= matlab.armax(x,y)
+
 #         ''' 
 #         _signal is instance of object src.data.signal
 #         '''
@@ -72,7 +87,8 @@ class ModeEstimation(object):
         rp: maximum ripple in the pass band. (dB) - Ap parameter from matlab fdesign.lowpass(Fp,Fst,Ap,Ast)
         rs:  minimum attenuation in the stop band. (dB) - Ast parameter from matlab fdesign.lowpass(Fp,Fst,Ap,Ast)
         '''
-        b, a= signal.iirfilter(self.order, Wn=[2/25,2.5/25], rp=0.1, rs=50, btype='lowpass', analog=True, ftype='cheby2')
+        b, a= signal.iirfilter(self.order, Wn=[2/25,2.5/25], rp=0.1, rs=50, btype='lowpass', 
+                               analog=True, ftype='cheby2')
         #pas 2 vedran, apply filter
         senalFiltrada= signal.lfilter(b, a, _signal)
         #pas 3 vedran, downsample the signal
@@ -92,5 +108,5 @@ class ModeEstimation(object):
     
     """ similar like find """
     def find_from_sample(self,y,find_what):
-        return np.where(y==find_what)[0];
+        return numpy.where(y==find_what)[0];
     

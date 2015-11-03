@@ -127,7 +127,7 @@ def main(argv):
     smith.load_sourcesH5(sys.argv[2], 'IEEENetworks2.IEEE_9Bus', 'pmu9')
     [measurement, simulation]= smith.get_sources('pmu9', 'pmu9')
     if (sys.argv[4]== '-me'):
-        smith.method_ME(None, simulation, 5)
+        smith.method_ME(measurement, None, 5)
     if (sys.argv[4]== '-era'):
         smith.method_ERA(measurement, simulation)
     ''' TODO: how to indicate the method to use? input parameter'''

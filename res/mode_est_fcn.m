@@ -1,18 +1,18 @@
-function[mode_freq, mode_damp]=mode_est_basic_fcn(y, order)
+function[mode_freq, mode_damp]=mode_est_fcn(args)
     
     d = fdesign.lowpass(2/25, 2.5/25, 0.1, 50 );
     Hlp=design(d);
-    y=filter(Hlp, y);
+    y=filter(Hlp, args.y);
     y=downsample(y,10);
     
-    dt=0.2;
-    Len=length(y);
-    u1=zeros(Len,1);
-    data=iddata(y,u1,dt)
+    %dt=0.2;
+    %Len=length(y);
+    %u1=zeros(Len,1);
+    data=iddata(y,args.x,dt);
     
-    na=order;
+    na=args.order;
     nb=0;
-    nc=order;
+    nc=args.order;
     nk=1; %delay
     tic
     
