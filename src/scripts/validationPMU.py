@@ -5,12 +5,13 @@ Created on Sep 03, 2015
 '''
 import sys
 from methods.ModeEstimation import ModeEstimation
+from methods.ValidationERA import ValidationERA 
 from ctrl.StreamCSVFile import InputCSVStream
 from ctrl.StreamH5File import InputH5Stream
 from ctrl.OutputModelVar import OutputModelVar
-import modred as mr
 import pandas as pd
 import numpy
+import matplotlib.pyplot as mplot 
 
 
 class Validation():
@@ -26,6 +27,7 @@ class Validation():
         self.outputs.load_varList()
         print self.outputs.get_varList()
         self.measurements= []
+        self.eraEngine= ValidationERA([]) 
         
     def load_sourcesCSV(self, _sourceCSV, _component, _signalComplex):
         ''' 
@@ -96,7 +98,6 @@ class Validation():
         '''
         '''TODO: match sampletime from meas with sim '''
 #         if (_measSignal.get_sampleTime()!= _simSignal.get_sampleTime()):
-        timeSignal= _measSignal.get_sampleTime()
         if _measSignal!= None and _simSignal!= None:
             outSignal= _measSignal.get_signalMag()
             inSignal= _simSignal.get_signalReal()
@@ -107,18 +108,28 @@ class Validation():
             if _simSignal!= None:
                 outSignal= _simSignal.get_signalReal()
                 inSignal= _simSignal.get_signalReal()
-        num_states = 2
-#         a,b,c = mr.compute_ERA_model([timeSignal,outSignal,inSignal], num_states)
-        a,b,c = mr.compute_ERA_model(numpy.array(outSignal[0:1000]), num_states)
+        self.eraEngine.calculate_eigenvalues(numpy.array(outSignal[0:1000]))
         print 'Measurements: '
-        print 'A= ', a
-        print 'B= ', b
-        print 'C= ', c
-        a,b,c = mr.compute_ERA_model(numpy.array(inSignal), num_states)
+        print 'A= ', self.eraEngine.A
+        print 'B= ', self.eraEngine.B
+        print 'C= ', self.eraEngine.C
+        self.eraEngine.calculate_eigenvalues(numpy.array(inSignal))
         print 'Simulation: '
-        print 'A= ', a
-        print 'B= ', b
-        print 'C= ', c
+        print 'A= ', self.eraEngine.A
+        print 'B= ', self.eraEngine.B
+        print 'C= ', self.eraEngine.C
+
+    def plot_outputERA(self):
+        mplot.scatter(self.eraEngine.eigenValue.real,self.eraEngine.eigenValue.imag)
+        limit_x= 1.1 # set limits for axis
+        limit_y= 0.5 # set limits for axis
+#         limit=np.max(np.ceil(np.absolute(eraEngine.elambda))) # set limits for axis
+        mplot.axis([-limit_x, limit_x, -limit_y, limit_y])
+        mplot.title('Eigenvalues')
+        mplot.ylabel('Imaginary')
+        mplot.xlabel('Real')
+        mplot.grid(True)
+        mplot.show()
 
 def main(argv):
     smith= Validation(sys.argv[3])
@@ -130,6 +141,7 @@ def main(argv):
         smith.method_ME(measurement, None, 5)
     if (sys.argv[4]== '-era'):
         smith.method_ERA(measurement, simulation)
+        smith.plot_outputERA()
     ''' TODO: how to indicate the method to use? input parameter'''
 
 if __name__ == '__main__':

@@ -6,8 +6,8 @@ Created on Sep 23, 2015
 import numpy
 from scipy import signal
 # import win32com.client
-from mlab.releases import latest_release as matlab
-# import subprocess
+# from mlab.releases import latest_release as matlab
+import subprocess, os
 # from pymatbridge import Matlab
 
 class ModeEstimation(object):
@@ -39,42 +39,21 @@ class ModeEstimation(object):
         return self.mode_damp
     
     def modeEstimationMat(self, _name, _signal):
-#         # Using java jar
-#         subprocess.call(['java','-jar', _name])
-#         # Using pymatbridge
-#         mlab = Matlab(matlab=u'C:/Program Files/MATLAB/R2012b/bin/matlab.exe')
-#         mlab.start()
-#         res= mlab.run('./res/mode_est_fcn.m', {'x': _signal.get_sampleTime(), 'y': _signal.get_signalMag(), 'order': 4})
-#         print res['result']
-#         # Stop the MATLAB server
-#         mlab.stop()
-
-        # Using mlabwrap
-        x= numpy.array([_signal.get_signalMag(), _signal.get_sampleTime()])
-        y= numpy.array([5,0,5,1])
-        res= matlab.armax(x,y)
-
-#         ''' 
-#         _signal is instance of object src.data.signal
-#         '''
-#         magnitude= _signal.get_signalMag()
-#         '''Opening MATLAB application'''
-#         h = win32com.client.Dispatch('matlab.application')
-#         h.Execute("cd C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res")
-#         ''' Order of the mode estimation function from run configuration Arguments'''
-#         h.Execute(self.order)       
-#         '''Sending the selected signal i.e Magnitude of Voltage to MATLAB'''
-#         h.Execute(magnitude)
-#         '''Transposing the array inside the MATLAB'''
-#         h.Execute("signal=ans.';")
-#         '''performing mode estimation for the magnitude of signal Voltage of order(sys.argv[1])in MATLAB'''
-#         '''TODO: Check that matlab is open in a correct way'''
-#         h.Execute("[mode_freq, mode_damp]=mode_est_basic_fcn(transpose, order);")
-#         self.mode_freq=h.Execute("disp([mode_freq])")
-#         self.mode_damp=h.Execute("disp([mode_damp])")
-#         
-#         print 'mode_freq', self.mode_freq
-#         print 'mode_damp', self.mode_damp
+        os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
+        scriptme= []
+        ''' modify the script with the data to be processed '''
+        ''' h5file and dataset '''
+        scriptme.append("clc; close all; clear;\n")
+        scriptme.append("data= h5read('"+ str(self.h5simoutput)+ "', '"+  str(self.groupName)+ "/"+ str(self.datasetName)+"');\n")
+        scriptme.append("do= data(2,:);\n")
+        scriptme.append("Y= do.';\n")
+        scriptme.append("order= "+ str(self.line_Order.text())+ ";\n")
+        scriptme.append("[mode_freq, mode_damp]=mode_est_basic_fcn(Y, order);\n")
+        scriptme.append("hdf5write('mode_estimation.h5','/mode_estimation/freq', mode_freq,'/mode_estimation/damp', mode_damp);\n")
+        scriptme.append("exit\n")
+        filefile = open('./run_mode_estimation.m', 'w') #os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/SimuGUI/res/matlab/') before
+        filefile.writelines(scriptme)
+        subprocess.call("matlab -r run_mode_estimation")
     
     def modeEstimationPY(self, _signal):
         '''TODO: Implement modeEstimation in python '''
@@ -82,19 +61,19 @@ class ModeEstimation(object):
         low pass filtering for mode estimation function 
         array must be declared and passed through the function 
         '''
-        #pas 1 vedran, design filter
+        # step 1 vedran, design filter
         ''' Wn= length-2 sequence giving the critical frequencies - Fp, Fst parameters from matlab fdesign.lowpass(Fp,Fst,Ap,Ast)
         rp: maximum ripple in the pass band. (dB) - Ap parameter from matlab fdesign.lowpass(Fp,Fst,Ap,Ast)
         rs:  minimum attenuation in the stop band. (dB) - Ast parameter from matlab fdesign.lowpass(Fp,Fst,Ap,Ast)
         '''
         b, a= signal.iirfilter(self.order, Wn=[2/25,2.5/25], rp=0.1, rs=50, btype='lowpass', 
                                analog=True, ftype='cheby2')
-        #pas 2 vedran, apply filter
+        # step 2 vedran, apply filter
         senalFiltrada= signal.lfilter(b, a, _signal)
-        #pas 3 vedran, downsample the signal
+        # step 3 vedran, downsample the signal
         senyal = signal.decimate(_signal, 10, ftype='iir')
         
-        #pas 4 vedran, armax, _signal.real or signal.magnitude and signal.sampling data
+        # step 4 vedran, armax, _signal.real or signal.magnitude and signal.sampling data
         angularHz, responseHz = signal.freqs(b, a, senyal)
         
         print 'angular frequency ', angularHz
