@@ -9,7 +9,7 @@ import ast
 import sys
 import win32com.client
 from data.signal import SignalPMU
-from ctrl import PhasorMeasH5, PhasorMeasCSV
+from inout import PhasorMeasH5, PhasorMeasCSV
 from data.Mode import Mode
 
 if __name__ == '__main__':

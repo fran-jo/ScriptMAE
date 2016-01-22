@@ -27,34 +27,16 @@ class StreamCSVFile(object):
         '''
         self.ccsvFile= panda.read_csv(_sourceFile, sep=_delimiter)
         
-    def get_senyal(self, _variable):
+    def get_fileName(self):
+        return self.ccsvFile
+    
+    def get_senyal(self, componame):
         ''' return signal object '''
-        return self.dsenyal[_variable]
-
-    def set_senyalRect(self, _variable, _nameR, _nameI):
-        ''' set a signal in complex form, real+imaginary '''
-        pass
-        
-    def set_senyalPolar(self, _variable, _nameM, _nameP):
-        ''' set a signal in polar form, magnitude + angle '''
-        csenyal= signal.SignalPMU()
-        if (_nameP != []):
-            csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
-                                    list(self.ccsvFile[_nameM]), list(self.ccsvFile[_nameP]))
-        else:
-            ''' array of 0 of the same length as samples '''
-            emptyarray= [-1 for x in self.ccsvFile['Timestamp']]
-            csenyal.set_signalPolar(self.ccsvFile['Timestamp'], 
-                                    list(self.ccsvFile[_nameM]), emptyarray)
-        csenyal.set_ccomponent(_variable)    
-        self.dsenyal[_variable]= csenyal
+        return self.dsenyal[componame]
         
     def del_senyal(self):
         del self.csenyal
-    
-    senyalCmp = property(get_senyal, set_senyalRect, del_senyal, "signalold's docstring")
-    senyalPol = property(get_senyal, set_senyalPolar, del_senyal, "signalold's docstring")
-    
+        
     def timestamp2sample(self, _variable):
         tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") for x in self.dsenyal[_variable].get_sampleTime()]
         sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
@@ -78,40 +60,39 @@ class InputCSVStream(StreamCSVFile):
         ''' Opens and existing csv file in reading mode '''
         pass
          
-    def load_csvValues(self, _variable, _nameM, _nameP):
+    def load_csvValues(self, componame, senyalR, senyalI):
         ''' Loads signal data from a specific variable form a specific component
-        _variable: variable name of the signal, column name
-        _nameM: name of the magnitude signal
-        _nameP: name of the phase signal 
+        senyal: variable name of the signal, column name
+        senyalR: name of the real,magnitude signal
+        senyalI: name of the imaginary,phase signal 
         '''
         csenyal= signal.SignalPMU()
-        if (_nameP != []):
-            csenyal.set_signalPolar(self.ccsvFile['Time'], 
-                                    list(self.ccsvFile[_nameM]), list(self.ccsvFile[_nameP]))
+        if (senyalI != []):
+            csenyal.set_signalPolar(list(self.ccsvFile['Time']), 
+                                    list(self.ccsvFile[senyalR]), list(self.ccsvFile[senyalI]))
         else:
             ''' array of 0 of the same length as samples '''
             emptyarray= [-1 for x in self.ccsvFile['Time']]
-            csenyal.set_signalPolar(self.ccsvFile['Time'], 
-                                    list(self.ccsvFile[_nameM]), emptyarray)
-        csenyal.set_ccomponent(_variable)    
-        self.dsenyal[_variable]= csenyal
+            csenyal.set_signalPolar(list(self.ccsvFile['Time']), 
+                                    list(self.ccsvFile[senyalR]), emptyarray)
+        csenyal.set_ccomponent(componame)    
+        self.dsenyal[componame]= csenyal
     
-    def timestamp2sample(self, _variable):
+    def timestamp2sample(self, componame):
         '''converts the timestamp value from pmu measurement into sample value as sample time 
         _variable name of the measurement to get the signal from 
         '''
         tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") 
-                  for x in self.dsenyal[_variable].get_sampleTime()]
+                  for x in self.dsenyal[componame].get_sampleTime()]
         sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
-        self.dsenyal[_variable].set_sampleTime(sampletime)
+        self.dsenyal[componame].set_sampleTime(sampletime)
         csenyal= signal.SignalPMU()
-        csenyal.set_signalPolar(sampletime, self.dsenyal[_variable].get_signalMag(), 
-                                self.dsenyal[_variable].get_signalPolar())
-        self.dsenyal[_variable]= csenyal
+        csenyal.set_signalPolar(sampletime, self.dsenyal[componame].get_signalMag(), 
+                                self.dsenyal[componame].get_signalPolar())
+        self.dsenyal[componame]= csenyal
     
     def load_csvHeader(self):
         self.cheader= list(self.ccsvFile.columns.values)
-        return self.cheader
     
     def load_csvHeaderIdx(self, _variable):
         return self.cheader.index(_variable)

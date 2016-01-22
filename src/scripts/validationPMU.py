@@ -6,9 +6,9 @@ Created on Sep 03, 2015
 import sys
 from methods.ModeEstimation import ModeEstimation
 from methods.ValidationERA import ValidationERA 
-from ctrl.StreamCSVFile import InputCSVStream
-from ctrl.StreamH5File import InputH5Stream
-from ctrl.OutputModelVar import OutputModelVar
+from inout.StreamCSVFile import InputCSVStream
+from inout.StreamH5File import InputH5Stream
+from inout.OutputModelVar import OutputModelVar
 import pandas as pd
 import numpy
 import matplotlib.pyplot as mplot 

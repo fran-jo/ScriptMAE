@@ -4,7 +4,7 @@ Created on 4 jun 2015
 @author: fragom
 '''
 
-from ctrl.StreamCSVFile import InputCSVStream
+from inout.StreamCSVFile import InputCSVStream
 from datetime import datetime 
 import time, os, platform
 

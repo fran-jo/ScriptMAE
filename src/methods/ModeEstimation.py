@@ -5,6 +5,7 @@ Created on Sep 23, 2015
 '''
 import numpy
 from scipy import signal
+import statsmodels.api as smapi 
 # import win32com.client
 # from mlab.releases import latest_release as matlab
 import subprocess, os
@@ -38,7 +39,7 @@ class ModeEstimation(object):
     def get_modeDamping(self):
         return self.mode_damp
     
-    def modeEstimationMat(self, _name, _signal):
+    def modeEstimationMat(self, _name):
         os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
         scriptme= []
         ''' modify the script with the data to be processed '''
@@ -47,7 +48,7 @@ class ModeEstimation(object):
         scriptme.append("data= h5read('"+ str(self.h5simoutput)+ "', '"+  str(self.groupName)+ "/"+ str(self.datasetName)+"');\n")
         scriptme.append("do= data(2,:);\n")
         scriptme.append("Y= do.';\n")
-        scriptme.append("order= "+ str(self.line_Order.text())+ ";\n")
+        scriptme.append("order= "+ str(self.order)+ ";\n")
         scriptme.append("[mode_freq, mode_damp]=mode_est_basic_fcn(Y, order);\n")
         scriptme.append("hdf5write('mode_estimation.h5','/mode_estimation/freq', mode_freq,'/mode_estimation/damp', mode_damp);\n")
         scriptme.append("exit\n")
@@ -55,8 +56,7 @@ class ModeEstimation(object):
         filefile.writelines(scriptme)
         subprocess.call("matlab -r run_mode_estimation")
     
-    def modeEstimationPY(self, _signal):
-        '''TODO: Implement modeEstimation in python '''
+    def modeEstimationPY(self, senyal):
         '''
         low pass filtering for mode estimation function 
         array must be declared and passed through the function 
@@ -69,12 +69,22 @@ class ModeEstimation(object):
         b, a= signal.iirfilter(self.order, Wn=[2/25,2.5/25], rp=0.1, rs=50, btype='lowpass', 
                                analog=True, ftype='cheby2')
         # step 2 vedran, apply filter
-        senalFiltrada= signal.lfilter(b, a, _signal)
+        senalFiltrada= signal.lfilter(b, a, senyal)
         # step 3 vedran, downsample the signal
-        senyal = signal.decimate(_signal, 10, ftype='iir')
+        senyalsampled = signal.decimate(senalFiltrada, 10, ftype='iir')
         
         # step 4 vedran, armax, _signal.real or signal.magnitude and signal.sampling data
+        sys_ident= smapi.tsa.ARMA(senyalsampled, order=(self.order,self.order)).fit()
+        print sys_ident
+        # sys_ident contains poles of the system and frequency related to this poles (modes), so we can apply 
+        # definition of Natural Frequency -> Omega_n= abs(pole) and Damping ratio -> -cos(angle(pole))
+        
+        
+        # step I with signal.freqs(b,a,y) we obtain frequency response of the signal
         angularHz, responseHz = signal.freqs(b, a, senyal)
+        print responseHz
+        
+        # step II according to matlab, Wn = abs(R)
         
         print 'angular frequency ', angularHz
         print 'frequency response ', responseHz
