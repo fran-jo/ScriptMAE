@@ -19,44 +19,43 @@ class Validation():
     TODO: pass the data read to the era method (both simulation and measurement)
     TODO: save the result in the same .h5 file of the simulation
     '''
-    def __init__(self, _variables):
+    def __init__(self, variables):
         ''' Loading output variables of the model, their values will be stored in h5 and plotted
         argv[0]: file with variable names from the model
         '''
-        self.outputs= OutputModelVar(_variables)
+        self.outputs= OutputModelVar(variables)
         self.outputs.load_varList()
         print self.outputs.get_varList()
         self.measurements= []
         self.eraEngine= ValidationERA([]) 
         
-    def load_sourcesCSV(self, _sourceCSV, _component, _signalComplex):
+    def load_sourcesCSV(self, sourceCSV, component, signalComplex):
         ''' 
-        _sourceCSV: .csv file, i.e. ./res/File_8.csv
-        _model: name of the model , for retrieving the h5.group
-        _component: name of the component, for retrieving the h5.dataset
-        _signalComplex: array with pair name of signals [meas, angle] that refer to a complex signal
+        sourceCSV: .csv file, i.e. ./res/File_8.csv
+        component: name of the component, for retrieving the h5.dataset
+        signalComplex: array with pair name of signals [meas, angle] that refer to a complex signal
         '''
-        if (_sourceCSV != ''):
-            self.iocsv= InputCSVStream(_sourceCSV, ',')
+        if (sourceCSV != ''):
+            self.iocsv= InputCSVStream(sourceCSV, ',')
             ''' select the signals according to variables '''
             ''' name is the representation of the measurement 
             meas signals/variables that name the signal of a measurement
             i.e: name KTHLAB:EMLAB; meas KTHLAB:EMLAB:Magnitude,KTHLAB:EMLAB:Angle 
             i.e: name bus1.V; meas bus1.v,bus1.angle '''
-            self.iocsv.load_csvValues(_component, _signalComplex[0], _signalComplex[1])
-            print 'PMU Signal ', self.iocsv.get_senyal(_component).__str__()
+            self.iocsv.load_csvValues(component, signalComplex[0], signalComplex[1])
+            print 'PMU Signal ', self.iocsv.get_senyal(component).__str__()
 
-    def load_sourcesH5(self, _sourceH5, _model, _component):
+    def load_sourcesH5(self, sourceH5, model, component):
         ''' 
-        _sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
+        sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
         _model: name of the model , for retrieving the h5.group
         _component: name of the component, for retrieving the h5.dataset
         '''
-        if (_sourceH5 != ''):
-            self.ioh5= InputH5Stream(_sourceH5)
+        if (sourceH5 != ''):
+            self.ioh5= InputH5Stream(sourceH5)
             self.ioh5.open_h5()
-            self.ioh5.load_h5(_model, _component)
-            print 'Simulation Signal ', self.ioh5.get_senyal(_component).__str__()
+            self.ioh5.load_h5(model, component)
+            print 'Simulation Signal ', self.ioh5.get_senyal(component).__str__()
         
     def load_pandaSource(self, _sourceCSV, _sourceH5, _modelName, _component, _variable):
         '''
@@ -70,23 +69,26 @@ class Validation():
 #         return self.iocsv.get_senyal('KTHLAB:EMLAB'), self.ioh5.get_senyal('block0')
 #         return (csvData, self.ioh5.get_senyal('block0'))
 
-    def get_sources(self, _measurement, _component):
+    def get_sources(self, measurement, component):
         ''' _measurement> 'KTHLAB:EMLAB'
         _component> 'block0'
         '''
-        return [self.iocsv.get_senyal(_measurement), self.ioh5.get_senyal(_component)]
+        return [self.iocsv.get_senyal(measurement), self.ioh5.get_senyal(component)]
     
-    def method_ME(self, _measSignal, _simSignal, _order):
+    def method_ME(self, measSignal, simSignal, order):
         ''' TODO: create a subset of signals from original signal in object senyal
         call mode estimation method with each subset, inside a loop '''
         meEngine= ModeEstimation()
-        meEngine.set_order(_order)
+        meEngine.set_order(order)
         ''' 1) mode Estimation with PMU signal '''
-        if _measSignal!= None:
-            meEngine.modeEstimationMat('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/lib/mes.jar',_measSignal)
+        if measSignal!= None:
+            # TODO fix this method with new implementation of me
+            meEngine.modeEstimationMat('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/lib/mes.jar',measSignal)
         ''' 2) mode Estimation with simulation signal '''
-        if _simSignal!= None:
-            meEngine.modeEstimationPY(_simSignal.get_signalReal())
+        if simSignal!= None:
+            # TODO study the behavior of this implementation
+            print len(simSignal.get_signalReal())
+            meEngine.modeEstimationPY(simSignal.get_signalReal())
         ''' TODO: pass the whole signal to Vedran mode estimation '''
 #         print 'Model Frequency ', meEngine.get_modeFrequency()
 #         print 'Model Damping  ', meEngine.get_modeDamping()
@@ -134,13 +136,13 @@ class Validation():
 def main(argv):
     smith= Validation(sys.argv[3])
     ''' TODO: load_sources parameters should come from GUI / manually, when scritping '''
-    smith.load_sourcesCSV(sys.argv[1], 'pmu9', ['bus9.v','bus9.anglev'])
-    smith.load_sourcesH5(sys.argv[2], 'IEEENetworks2.IEEE_9Bus', 'pmu9')
-    [measurement, simulation]= smith.get_sources('pmu9', 'pmu9')
+    smith.load_sourcesCSV(sys.argv[1], 'pmu1', ['bus1.v','bus1.anglev'])
+    smith.load_sourcesH5(sys.argv[2], 'WhiteNoiseModel', 'bus1')
+    [measurement, simulation]= smith.get_sources('pmu1', 'bus1')
     if (sys.argv[4]== '-me'):
-        smith.method_ME(measurement, None, 5)
+        smith.method_ME(None, simulation, 26)
     if (sys.argv[4]== '-era'):
-        smith.method_ERA(measurement, simulation)
+        smith.method_ERA(None, simulation)
         smith.plot_outputERA()
     ''' TODO: how to indicate the method to use? input parameter'''
 

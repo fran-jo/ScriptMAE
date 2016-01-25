@@ -40,6 +40,7 @@ class ModeEstimation(object):
         return self.mode_damp
     
     def modeEstimationMat(self, _name):
+        # TODO: check cpu time
         os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
         scriptme= []
         ''' modify the script with the data to be processed '''
@@ -57,6 +58,7 @@ class ModeEstimation(object):
         subprocess.call("matlab -r run_mode_estimation")
     
     def modeEstimationPY(self, senyal):
+        # TODO Check CPU time
         '''
         low pass filtering for mode estimation function 
         array must be declared and passed through the function 
@@ -82,7 +84,7 @@ class ModeEstimation(object):
         
         # step I with signal.freqs(b,a,y) we obtain frequency response of the signal
         angularHz, responseHz = signal.freqs(b, a, senyal)
-        print responseHz
+#         print responseHz
         
         # step II according to matlab, Wn = abs(R)
         
