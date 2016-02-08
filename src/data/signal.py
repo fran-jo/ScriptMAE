@@ -19,7 +19,7 @@ class Signal(object):
         self._signal = []
         self._component= ''
 
-    def get_csamples(self):
+    def get_samples(self):
         ''' return the number of samples of the singal '''
         return self._samples
 
@@ -41,7 +41,7 @@ class Signal(object):
             series.append(r)
         return series    
         
-    def get_signalImag(self):
+    def get_signalImaginary(self):
         ''' returns an array with imaginary component of the signal '''
         series= []
         for s,r,i in self._signal:
@@ -57,11 +57,11 @@ class Signal(object):
         ''' _value: input sample/time array '''
         self._samples = len(_value)
       
-    def set_signalRect(self, _samples, _valueR, _valueI):
+    def set_signal(self, samples, valueR, valueI):
         ''' create dictionary with real part of the complex signal
         _samples:
         _valueR: '''
-        self._signal= [(s,r,i) for s,r,i in zip(_samples, _valueR, _valueI)]
+        self._signal= [(s,r,i) for s,r,i in zip(samples, valueR, valueI)]
         self._samples= len(self._signal)
 
 

@@ -5,7 +5,7 @@ Created on Sep 23, 2015
 '''
 import numpy
 from scipy import signal
-import statsmodels.api as smapi 
+import statsmodels.api as smapi
 # import win32com.client
 # from mlab.releases import latest_release as matlab
 import subprocess, os
