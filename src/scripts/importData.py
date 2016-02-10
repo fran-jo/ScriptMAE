@@ -51,7 +51,9 @@ class ImportData(object):
         sourceh5.save_h5Values(componentname)
         sourceh5.close_h5()
         
-    def mat_to_H5(self, matFile='.mat'):
+    def mat_to_h5(self, matFile='.mat'):
+        ''' .mat files resulting from Dymola or OpenModelica simulation 
+        use of ModelicaRes library'''
         sourcemat= StreamMATFile.InputMATStream(matFile, 'omc')
         sourcemat.load_components()
         #TODO Selection of variables, recursive
@@ -70,7 +72,32 @@ class ImportData(object):
         sourceh5.save_h5Names(componentsName, variablesName)
         sourceh5.save_h5Values(componentsName)
         sourceh5.close_h5()
+        
+    def out_to_h5(self, outfile= '.out'):
+        
+        
+        outlst = [argv[0]]
+        chnfobj = dyntools.CHNF(outlst)
+        print '\n Testing call to get_id'
+        
+        
+        print '\n Testing call to get_range'
+        ch_range = chnfobj.get_range()
+        print ch_range
+        
+        print '\n Testing call to get_scale'
+        ch_scale = chnfobj.get_scale()
+        print ch_scale
+        
+        print '\n Testing call to print_scale'
+        chnfobj.print_scale()
+        
+        print '\n Testing call to txtout'
+        chnfobj.txtout(channels=[1,4])
+        
+        print '\n Testing call to xlsout'
+        chnfobj.xlsout(channels=[1,2,3,4,5])
 
 if __name__ == '__main__':
     theimporter= ImportData()
-    theimporter.mat_to_H5(sys.argv[1])
+    theimporter.mat_to_h5(sys.argv[1])
