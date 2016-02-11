@@ -41,7 +41,7 @@ class Signal(object):
             series.append(r)
         return series    
         
-    def get_signalImaginary(self):
+    def get_signalImag(self):
         ''' returns an array with imaginary component of the signal '''
         series= []
         for s,r,i in self._signal:
@@ -53,7 +53,7 @@ class Signal(object):
         return self._component  
 
 
-    def set_csamples(self, _value):
+    def set_samples(self, _value):
         ''' _value: input sample/time array '''
         self._samples = len(_value)
       
@@ -65,12 +65,12 @@ class Signal(object):
         self._samples= len(self._signal)
 
 
-    def set_ccomponent(self, value):
+    def set_component(self, value):
         ''' set the name of the component which the signal belongs to '''
         self._component = value
 
 
-    def del_csamples(self):
+    def del_samples(self):
         del self._samples
 
     def del_signal(self):

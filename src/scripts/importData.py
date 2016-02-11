@@ -4,7 +4,7 @@ Created on 22 jan 2016
 @author: fragom
 '''
 
-import sys
+import sys, os
 from inout import StreamCSVFile, StreamH5File, StreamMATFile, StreamOUTFile
 
 class ImportData(object):
@@ -13,7 +13,7 @@ class ImportData(object):
     def __init__(self):
         pass
     
-    def selectData(self, arrayQualquiera):
+    def selectData(self, arrayQualquiera, mensaje):
         count= 0
         indexMapping={}
         for i, meas in enumerate(arrayQualquiera):
@@ -21,7 +21,7 @@ class ImportData(object):
             indexMapping[count]= i
             count+= 1
         try:
-            value= raw_input("Select which variable do you want to plot: ")
+            value= raw_input(mensaje)
             lindex = value.split()
         except ValueError:
             print "Mal! Mal! Mal! Verdadera mal! Por no decir borchenoso!" 
@@ -74,24 +74,30 @@ class ImportData(object):
         sourceh5.close_h5()
         
     def out_to_h5(self, binpath= './', outfile= '.out'):
+        PSSE_PATH= binpath
+        sys.path.append(PSSE_PATH)
+        os.environ['PATH']+= ';'+ PSSE_PATH
+        
         ''' .out files resulting from psse dynamic simulations '''
-        sourceout= StreamOUTFile.InputOUTStream(binpath,outfile)
+        sourceout= StreamOUTFile.InputOUTStream(outfile)
         sourceout.load_outputData()
-        selectedOutput= self.selectData(sourceout.ch_id)
-        sourceout.load_channelData(selectedOutput)
+        selectedOutput= self.selectData(sourceout.ch_id, "Select the data in pairs:")
+        sourceout.save_channelID(selectedOutput)
+        sourceout.load_channelData()
+        print 'signal: ', sourceout.signals
         modelname= outfile.split('.')[1].split('/')[-1]
-        print modelname
+        print 'modelname: ', modelname
         h5name= modelname + '.h5'
-        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'omc')
+        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'psse')
         ''' TODO name of the model to be parametrized '''
         ''' TODO check the h5Names and values '''
         sourceh5.open_h5(modelname)
-        sourceh5.set_senyal(selectedOutput, sourceout.signals[selectedOutput])
-        sourceh5.save_h5Names(selectedOutput, selectedOutput)
-        sourceh5.save_h5Values(selectedOutput)
+        for component in sourceout.signals.keys():
+            sourceh5.save_h5Names(component, sourceout.selectedId[component])
+            sourceh5.save_h5Values(component, sourceout.signals[component])
         sourceh5.close_h5()
 
-if __name__ == '__main__':
+if __name__ == '__main__':  
     theimporter= ImportData()
     options= ['dymola','openmodelica','psse','measurements']
     option= theimporter.selectData(options)
@@ -99,6 +105,6 @@ if __name__ == '__main__':
     if (option[0]=='dymola') | (option[0]=='openmodelica'):
         theimporter.mat_to_h5(sys.argv[1])
     if (option[0]=='psse'):
-        theimporter.out_to_h5(sys.argv[1],sys.argv[2])
+        theimporter.out_to_h5(sys.argv[1], sys.argv[2])
     if (option[0]=='measurements'):
         theimporter.csv_to_h5(sys.argv[1],sys.argv[2])
