@@ -1,5 +1,7 @@
-Class PhasorMeasCSV.py for reading PMU measurements
+1) Test method for RMSE
 
-Make PhasorMeasH5.py deal with multiple signals in memory
+2) Test ERA
+
+3) Test mode estimation
 
 
