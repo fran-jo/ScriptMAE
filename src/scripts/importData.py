@@ -5,7 +5,7 @@ Created on 22 jan 2016
 '''
 
 import sys
-from inout import StreamCSVFile, StreamH5File, StreamMATFile
+from inout import StreamCSVFile, StreamH5File, StreamMATFile, StreamOUTFile
 
 class ImportData(object):
     ''' classdocs '''
@@ -42,7 +42,7 @@ class ImportData(object):
         h5name= csvFile.split('.')[1].split('/')[-1]
         print h5name
         h5name= h5name + '.h5'
-        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'openmodelica')
+        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'omc')
         ''' TODO name of the model to be parametrized '''
         sourceh5.open_h5('WhiteNoiseModel')
         measname.insert(0, 'sampletime')
@@ -64,7 +64,7 @@ class ImportData(object):
         h5name= matFile.split('.')[1].split('/')[-1]
         print h5name
         h5name= h5name + '.h5'
-        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'openmodelica')
+        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'omc')
         ''' TODO name of the model to be parametrized '''
         sourceh5.open_h5('WhiteNoiseModel')
         componentsName.insert(0, 'sampletime')
@@ -73,31 +73,32 @@ class ImportData(object):
         sourceh5.save_h5Values(componentsName)
         sourceh5.close_h5()
         
-    def out_to_h5(self, outfile= '.out'):
-        
-        
-        outlst = [argv[0]]
-        chnfobj = dyntools.CHNF(outlst)
-        print '\n Testing call to get_id'
-        
-        
-        print '\n Testing call to get_range'
-        ch_range = chnfobj.get_range()
-        print ch_range
-        
-        print '\n Testing call to get_scale'
-        ch_scale = chnfobj.get_scale()
-        print ch_scale
-        
-        print '\n Testing call to print_scale'
-        chnfobj.print_scale()
-        
-        print '\n Testing call to txtout'
-        chnfobj.txtout(channels=[1,4])
-        
-        print '\n Testing call to xlsout'
-        chnfobj.xlsout(channels=[1,2,3,4,5])
+    def out_to_h5(self, binpath= './', outfile= '.out'):
+        ''' .out files resulting from psse dynamic simulations '''
+        sourceout= StreamOUTFile.InputOUTStream(binpath,outfile)
+        sourceout.load_outputData()
+        selectedOutput= self.selectData(sourceout.ch_id)
+        sourceout.load_channelData(selectedOutput)
+        modelname= outfile.split('.')[1].split('/')[-1]
+        print modelname
+        h5name= modelname + '.h5'
+        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'omc')
+        ''' TODO name of the model to be parametrized '''
+        ''' TODO check the h5Names and values '''
+        sourceh5.open_h5(modelname)
+        sourceh5.set_senyal(selectedOutput, sourceout.signals[selectedOutput])
+        sourceh5.save_h5Names(selectedOutput, selectedOutput)
+        sourceh5.save_h5Values(selectedOutput)
+        sourceh5.close_h5()
 
 if __name__ == '__main__':
     theimporter= ImportData()
-    theimporter.mat_to_h5(sys.argv[1])
+    options= ['dymola','openmodelica','psse','measurements']
+    option= theimporter.selectData(options)
+    print option
+    if (option[0]=='dymola') | (option[0]=='openmodelica'):
+        theimporter.mat_to_h5(sys.argv[1])
+    if (option[0]=='psse'):
+        theimporter.out_to_h5(sys.argv[1],sys.argv[2])
+    if (option[0]=='measurements'):
+        theimporter.csv_to_h5(sys.argv[1],sys.argv[2])
