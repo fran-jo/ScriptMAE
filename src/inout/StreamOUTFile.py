@@ -6,6 +6,7 @@ Created on 10 feb 2016
 
 from data import signal
 from itertools import izip
+import psspy, dyntools
 
 class StreamOUTFile(object):
     '''
@@ -18,7 +19,6 @@ class StreamOUTFile(object):
         '''
         Constructor
         '''
-        import psspy, dyntools
         self._chnfobj = dyntools.CHNF([params[0]])
 
 class InputOUTStream(StreamOUTFile): 

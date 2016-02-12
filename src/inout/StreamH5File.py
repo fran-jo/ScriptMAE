@@ -39,7 +39,37 @@ class StreamH5File(object):
         self.dsenyal= {}
         self.compiler= compiler
 
-        
+    def get_group(self):
+        return self.__group
+
+    def get_dsetvalues(self):
+        return self.__dsetvalues
+
+    def get_dsetnames(self):
+        return self.__dsetnames
+
+    def set_group(self, value):
+        self.__group = value
+
+    def set_dsetvalues(self, value):
+        self.__dsetvalues = value
+
+    def set_dsetnames(self, value):
+        self.__dsetnames = value
+
+    def del_group(self):
+        del self.__group
+
+    def del_dsetvalues(self):
+        del self.__dsetvalues
+
+    def del_dsetnames(self):
+        del self.__dsetnames
+    
+    group = property(get_group, set_group, del_group, "group's docstring")
+    dsetvalues = property(get_dsetvalues, set_dsetvalues, del_dsetvalues, "dsetvalues's docstring")
+    dsetnames = property(get_dsetnames, set_dsetnames, del_dsetnames, "dsetnames's docstring")
+    
     def get_senyal(self, _measurement):
         ''' return signal object '''
         return self.dsenyal[_measurement]
@@ -78,9 +108,6 @@ class StreamH5File(object):
             csenyal.set_signalPolar(self.cmatfile[nameVarTime], self.cmatfile[_nameM], emptyarray)
         self.dsenyal[_measurement]= csenyal
         
-    def del_senyal(self):
-        del self.csenyal
-    
     
     def pmu_from_cmp(self, a_instance):
         '''Given an instance of A, return a new instance of B.'''
@@ -97,36 +124,12 @@ class StreamH5File(object):
     
                    
 class InputH5Stream(StreamH5File):
+    '''
+    classdocs
+    '''
+    
     def __init__(self, params):
         super(InputH5Stream, self).__init__(params)
-
-    def get_group(self):
-        return self.__group
-
-    def get_dsetvalues(self):
-        return self.__dsetvalues
-
-    def get_dsetnames(self):
-        return self.__dsetnames
-
-    def set_group(self, value):
-        self.__group = value
-
-    def set_dsetvalues(self, value):
-        self.__dsetvalues = value
-
-    def set_dsetnames(self, value):
-        self.__dsetnames = value
-
-    def del_group(self):
-        del self.__group
-
-    def del_dsetvalues(self):
-        del self.__dsetvalues
-
-    def del_dsetnames(self):
-        del self.__dsetnames
-
 
     def open_h5(self):
         ''' Opens and existing .h5 file in reading mode '''
@@ -160,10 +163,7 @@ class InputH5Stream(StreamH5File):
             
     def close_h5(self):
         self._h5file.close()
-        
-    group = property(get_group, set_group, del_group, "group's docstring")
-    dsetvalues = property(get_dsetvalues, set_dsetvalues, del_dsetvalues, "dsetvalues's docstring")
-    dsetnames = property(get_dsetnames, set_dsetnames, del_dsetnames, "dsetnames's docstring")
+
         
         
 class OutputH5Stream(StreamH5File):
@@ -186,33 +186,6 @@ class OutputH5Stream(StreamH5File):
 
     def del_senyales(self):
         del self.__senyales
-
-    def get_group(self):
-        return self.__group
-
-    def get_dsetvalues(self):
-        return self.__dsetvalues
-
-    def get_dsetnames(self):
-        return self.__dsetnames
-
-    def set_group(self, value):
-        self.__group = value
-
-    def set_dsetvalues(self, value):
-        self.__dsetvalues = value
-
-    def set_dsetnames(self, value):
-        self.__dsetnames = value
-
-    def del_group(self):
-        del self.__group
-
-    def del_dsetvalues(self):
-        del self.__dsetvalues
-
-    def del_dsetnames(self):
-        del self.__dsetnames
 
         
     def open_h5(self, network):
@@ -276,7 +249,4 @@ class OutputH5Stream(StreamH5File):
     def close_h5(self):
         self._h5file.close()
         
-    group = property(get_group, set_group, del_group, "group's docstring")
-    dsetvalues = property(get_dsetvalues, set_dsetvalues, del_dsetvalues, "dsetvalues's docstring")
-    dsetnames = property(get_dsetnames, set_dsetnames, del_dsetnames, "dsetnames's docstring")
     senyales = property(get_senyales, set_senyales, del_senyales, "senyales's docstring")

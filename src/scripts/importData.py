@@ -89,8 +89,6 @@ class ImportData(object):
         print 'modelname: ', modelname
         h5name= modelname + '.h5'
         sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'psse')
-        ''' TODO name of the model to be parametrized '''
-        ''' TODO check the h5Names and values '''
         sourceh5.open_h5(modelname)
         for component in sourceout.signals.keys():
             sourceh5.save_h5Names(component, sourceout.selectedId[component])
@@ -101,7 +99,6 @@ if __name__ == '__main__':
     theimporter= ImportData()
     options= ['dymola','openmodelica','psse','measurements']
     option= theimporter.selectData(options)
-    print option
     if (option[0]=='dymola') | (option[0]=='openmodelica'):
         theimporter.mat_to_h5(sys.argv[1])
     if (option[0]=='psse'):
