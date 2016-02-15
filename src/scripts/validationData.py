@@ -13,7 +13,6 @@ from inout.StreamOUTFile import InputOUTStream
 import pandas as pd
 import numpy
 import matplotlib.pyplot as mplot 
-from __builtin__ import None
 
 
 class ValidationData():
@@ -76,24 +75,24 @@ class ValidationData():
         component= sourceout.signals.keys()
         self.referenceSignal= sourceout.signals[component[0]]
         
-    def load_sourcesH5(self, sourceH5, isReference=False):
+    def load_sourcesH5(self, compiler= 'openmodelica', sourceH5, isReference=False):
         ''' 
         sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
         _model: name of the model , for retrieving the h5.group
         _component: name of the component, for retrieving the h5.dataset
         '''
-        ioh5= InputH5Stream(sourceH5)
+        sourcePath= './'+ compiler
+        ioh5= InputH5Stream(sourcePath, sourceH5)
         ioh5.open_h5()
-        # TODO user must select which signal to load
-        # TODO load model name (header of the h5 file)
-        # TODO load component name (will load, sampletime, mag and angle, object signal)
-        self.ioh5.load_h5(model, component)
+        self.ioh5.load_h5Group()
+        optcomponent= self.selectData(self.ioh5.datasetlist, "Select the signal to be validated: ")
+        self.ioh5.load_h5(self.ioh5.group, optcomponent)
         if (isReference):
-            print 'Simulation Signal ', ioh5.get_senyal(component).__str__()
-            self.referenceSignal= ioh5.get_senyal(component).get_signalReal()
+            print 'Simulation Signal ', ioh5.get_senyal(optcomponent).__str__()
+            self.referenceSignal= ioh5.get_senyal(optcomponent).get_signalReal()
         else:
-            print 'Simulation Signal ', ioh5.get_senyal(component).__str__()
-            self.simulationSignal= ioh5.get_senyal(component).get_signalReal()
+            print 'Simulation Signal ', ioh5.get_senyal(optcomponent).__str__()
+            self.simulationSignal= ioh5.get_senyal(optcomponent).get_signalReal()
         
     def load_pandaSource(self, _sourceCSV, _sourceH5, _modelName, _component, _variable):
         '''
@@ -180,13 +179,16 @@ def main(argv):
     options= ['dymola','openmodelica','psse','measurements']
     option= smith.selectData(options, "Select the source of the reference model: ")
     # TODO factory patern to select the proper method
-    if (option[0]=='dymola') | (option[0]=='openmodelica'):
-        smith.load_sourcesH5(sys.argv[1])
+    if (option[0]=='dymola'): 
+        smith.load_sourcesH5('dymola', sys.argv[1])
+    if (option[0]=='openmodelica'):
+        smith.load_sourcesH5('openmodelica', sys.argv[1])
     if (option[0]=='psse'):
         smith.load_sourcesOUT(sys.argv[1])
     if (option[0]=='measurements'):
         smith.load_sourcesCSV(sys.argv[1])
     smith.load_sourcesH5(sys.argv[2])
+    # select data available from reference and simulation
     
     # Selection of validation/analysis method
     options= ['Mode Estimation','ERA','RMSE']
@@ -204,5 +206,8 @@ def main(argv):
         smith.analyze_RMSE()
 
 if __name__ == '__main__':
+    PSSE_PATH= r'C:\\Program Files (x86)\\PTI\\PSSE33\\PSSBIN'
+    sys.path.append(PSSE_PATH)
+    os.environ['PATH']+= ';'+ PSSE_PATH
     main(sys.argv[1:])
     
