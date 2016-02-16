@@ -66,18 +66,20 @@ class InputMATStream(StreamMATFile):
         ''' from the object file, loads the name of the components of the network '''
         self.__components= sorted(self._resultFile.nametree().keys())
     
-    def load_variables(self, component):
+    def load_variables(self, componentes):
         '''
         components
         '''
-        self.__variables= self._resultFile.nametree()[component].keys()
+        #TODO improve the importer to show variable names
+        for component in componentes:
+            self.__variables.append(self._resultFile.nametree()[component].keys())
         
     def load_signals(self, component, variable):
         '''
         component
         variables
         '''
-        if self.compiler== 'omc': 
+        if self._compiler== 'omc': 
             nameVarTime= 'time' 
         else: 
             nameVarTime= "Time"

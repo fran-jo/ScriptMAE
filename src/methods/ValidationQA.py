@@ -54,5 +54,6 @@ class StatisticalAnalysis(QuantitativeAnalysis):
     
     def qaSignalError(self):
         error= np.subtract(np.array(self._signalRef), np.array(self._signalOut))
+        #TODO error signal must be a new object signal with own sampletime
         return error
     

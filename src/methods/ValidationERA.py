@@ -24,23 +24,23 @@ class QuantitativeAnalysis(object):
 
 
     def get_signal_out(self):
-        return self.__signalOut
+        return self._signalOut
 
     def get_signal_ref(self):
-        return self.__signalRef
+        return self._signalRef
 
     def set_signal_out(self, value):
-        self.__signalOut = value
+        self._signalOut = np.array(value)
 
     def set_signal_ref(self, value):
-        self.__signalRef = value
+        self._signalRef = np.array(value)
 
     def del_signal_out(self):
-        del self.__signalOut
+        del self._signalOut
 
     def del_signal_ref(self):
-        del self.__signalRef
-
+        del self._signalRef
+        
     signalOut = property(get_signal_out, set_signal_out, del_signal_out, "signalOut's docstring")
     signalRef = property(get_signal_ref, set_signal_ref, del_signal_ref, "signalRef's docstring")
     
@@ -49,75 +49,134 @@ class ValidationERA(QuantitativeAnalysis):
     '''
     classdocs
     '''
-    __A= []
-    __B= []
-    __C= []
-    __elambda= []
-    __vlambda= []
+    __Aout= []
+    __Bout= []
+    __Cout= []
+    __Aref= []
+    __Bref= []
+    __Cref= []
+    __elambdaOut= []
+    __vlambdaOut= []
+    __elambdaRef= []
+    __vlambdaRef= []
+
 
     def __init__(self, params):
         '''
         Constructor
         '''
-        
+
     def calculate_eigenvalues(self):
         ''' eigenvalues and eigen vectors '''
-        print len(self._signalOut)
         #first era method
-        self.__A, self.__B, self.__C = mr.compute_ERA_model(np.array(self._signalOut), 3)
+        self.__Aout, self.__Bout, self.__Cout = mr.compute_ERA_model(self._signalOut, 3)
         # second, eigenvalues and eigenvectors
-        self.__elambda, self.__vlambda = linalg.eig(self.__A)
+        self.__elambdaOut, self.__vlambdaOut = linalg.eig(self.__Aout)
+        self.__Aref, self.__Bref, self.__Cref = mr.compute_ERA_model(self.signalRef, 3)
+        # second, eigenvalues and eigenvectors
+        self.__elambdaRef, self.__vlambdaRef = linalg.eig(self.__Aref)
+    
+    
+    def get_elambda_out(self):
+        return self.__elambdaOut
+
+    def get_vlambda_out(self):
+        return self.__vlambdaOut
+
+    def get_elambda_ref(self):
+        return self.__elambdaRef
+
+    def get_vlambda_ref(self):
+        return self.__vlambdaRef
+
+    def set_elambda_out(self, value):
+        self.__elambdaOut = value
+
+    def set_vlambda_out(self, value):
+        self.__vlambdaOut = value
+
+    def set_elambda_ref(self, value):
+        self.__elambdaRef = value
+
+    def set_vlambda_ref(self, value):
+        self.__vlambdaRef = value
+
+    def del_elambda_out(self):
+        del self.__elambdaOut
+
+    def del_vlambda_out(self):
+        del self.__vlambdaOut
+
+    def del_elambda_ref(self):
+        del self.__elambdaRef
+
+    def del_vlambda_ref(self):
+        del self.__vlambdaRef
+
+    def get_aout(self):
+        return self.__Aout
+
+    def get_bout(self):
+        return self.__Bout
+
+    def get_cout(self):
+        return self.__Cout
+
+    def get_aref(self):
+        return self.__Aref
+
+    def get_bref(self):
+        return self.__Bref
+
+    def get_cref(self):
+        return self.__Cref
+
+    def set_aout(self, value):
+        self.__Aout = value
+
+    def set_bout(self, value):
+        self.__Bout = value
+
+    def set_cout(self, value):
+        self.__Cout = value
+
+    def set_aref(self, value):
+        self.__Aref = value
+
+    def set_bref(self, value):
+        self.__Bref = value
+
+    def set_cref(self, value):
+        self.__Cref = value
+
+    def del_aout(self):
+        del self.__Aout
+
+    def del_bout(self):
+        del self.__Bout
+
+    def del_cout(self):
+        del self.__Cout
+
+    def del_aref(self):
+        del self.__Aref
+
+    def del_bref(self):
+        del self.__Bref
+
+    def del_cref(self):
+        del self.__Cref
+
+        
+    Aout = property(get_aout, set_aout, del_aout, "Aout's docstring")
+    Bout = property(get_bout, set_bout, del_bout, "Bout's docstring")
+    Cout = property(get_cout, set_cout, del_cout, "Cout's docstring")
+    Aref = property(get_aref, set_aref, del_aref, "Aref's docstring")
+    Bref = property(get_bref, set_bref, del_bref, "Bref's docstring")
+    Cref = property(get_cref, set_cref, del_cref, "Cref's docstring")
+    eigenValueOut = property(get_elambda_out, set_elambda_out, del_elambda_out, "elambdaOut's docstring")
+    eigenVectorOut = property(get_vlambda_out, set_vlambda_out, del_vlambda_out, "vlambdaOut's docstring")
+    eigenValueRef = property(get_elambda_ref, set_elambda_ref, del_elambda_ref, "elambdaRef's docstring")
+    eigenVectorRef = property(get_vlambda_ref, set_vlambda_ref, del_vlambda_ref, "vlambdaRef's docstring")
 #         ''' TODO: this functions shows a warning, catch it and print it in the GUI '''
         
-
-    def get_A(self):
-        return self.__A
-
-    def get_B(self):
-        return self.__B
-
-    def get_C(self):
-        return self.__C
-
-    def get_eigenValues(self):
-        return self.__elambda
-
-    def get_eigenVector(self):
-        return self.__vlambda
-
-    def set_A(self, value):
-        self.__A = value
-
-    def set_B(self, value):
-        self.__B = value
-
-    def set_C(self, value):
-        self.__C = value
-
-    def set_eigenValues(self, value):
-        self.__elambda = value
-
-    def set_eigenVector(self, value):
-        self.__vlambda = value
-
-    def del_A(self):
-        del self.__A
-
-    def del_B(self):
-        del self.__B
-
-    def del_C(self):
-        del self.__C
-
-    def del_eigenValues(self):
-        del self.__elambda
-
-    def del_eigenVector(self):
-        del self.__vlambda
- 
-        
-    A = property(get_A, set_A, del_A, "A's docstring")
-    B = property(get_B, set_B, del_B, "B's docstring")
-    C = property(get_C, set_C, del_C, "C's docstring")
-    eigenValue = property(get_eigenValues, set_eigenValues, del_eigenValues, "elambda's docstring")
-    eigenVector = property(get_eigenVector, set_eigenVector, del_eigenVector, "vlambda's docstring")

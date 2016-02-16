@@ -42,7 +42,7 @@ class ImportData(object):
         h5name= csvFile.split('.')[1].split('/')[-1]
         print h5name
         h5name= h5name + '.h5'
-        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'omc')
+        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'meas')
         ''' TODO name of the model to be parametrized '''
         sourceh5.open_h5('WhiteNoiseModel')
         measname.insert(0, 'sampletime')
@@ -51,20 +51,20 @@ class ImportData(object):
         sourceh5.save_h5Values(componentname)
         sourceh5.close_h5()
         
-    def mat_to_h5(self, matFile='.mat'):
+    def mat_to_h5(self, matFile='.mat', compiler= 'openmodelica'):
         ''' .mat files resulting from Dymola or OpenModelica simulation 
         use of ModelicaRes library'''
-        sourcemat= StreamMATFile.InputMATStream(matFile, 'omc')
+        sourcemat= StreamMATFile.InputMATStream(matFile, compiler)
         sourcemat.load_components()
-        #TODO Selection of variables, recursive
-        componentsName= self.selectData(sourcemat.components)
-        variablesName= self.selectData(componentsName)
+        componentsName= self.selectData(sourcemat.components, 'Select which component data to import: ')
+        sourcemat.load_variables(sourcemat.components)
+        variablesName= self.selectData(componentsName, 'Select which signals from components to import: ')
         sourcemat.load_signals(componentsName, variablesName)
         # TODO save signals to h5 file
         h5name= matFile.split('.')[1].split('/')[-1]
         print h5name
         h5name= h5name + '.h5'
-        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'omc')
+        sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], compiler)
         ''' TODO name of the model to be parametrized '''
         sourceh5.open_h5('WhiteNoiseModel')
         componentsName.insert(0, 'sampletime')
@@ -81,7 +81,7 @@ class ImportData(object):
         ''' .out files resulting from psse dynamic simulations '''
         sourceout= StreamOUTFile.InputOUTStream(outfile)
         sourceout.load_outputData()
-        selectedOutput= self.selectData(sourceout.ch_id, "Select the data in pairs:")
+        selectedOutput= self.selectData(sourceout.ch_id, "Select the data to import, in pairs:")
         sourceout.save_channelID(selectedOutput)
         sourceout.load_channelData()
         print 'signal: ', sourceout.signals
@@ -98,9 +98,11 @@ class ImportData(object):
 if __name__ == '__main__':  
     theimporter= ImportData()
     options= ['dymola','openmodelica','psse','measurements']
-    option= theimporter.selectData(options)
-    if (option[0]=='dymola') | (option[0]=='openmodelica'):
-        theimporter.mat_to_h5(sys.argv[1])
+    option= theimporter.selectData(options, 'Select the source of the simulation files to import: ')
+    if (option[0]=='dymola'):
+        theimporter.mat_to_h5(sys.argv[1], 'dymola') 
+    if (option[0]=='openmodelica'):
+        theimporter.mat_to_h5(sys.argv[1], 'openmodelica')
     if (option[0]=='psse'):
         theimporter.out_to_h5(sys.argv[1], sys.argv[2])
     if (option[0]=='measurements'):

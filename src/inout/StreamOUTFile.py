@@ -81,7 +81,7 @@ class InputOUTStream(StreamOUTFile):
         for key, valor in self.__selectedId.iteritems():
             iclau= channels.index(valor[0])+ 1
             ivalor= channels.index(valor[1])+ 1
-            senyal= signal.Signal()
+            senyal= signal.SignalPMU()
             senyal.set_signal(self.__outdata['time'], self.__outdata[iclau], self.__outdata[ivalor])
             self.__signals[key]= senyal
         print len(self.__signals)

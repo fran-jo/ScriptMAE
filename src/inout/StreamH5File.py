@@ -41,49 +41,49 @@ class StreamH5File(object):
         self.compiler= compiler
 
     def get_signals(self):
-        return self.__signals
+        return self._signals
 
     def set_signals(self, value):
-        self.__signals = value
+        self._signals = value
 
     def del_signals(self):
-        del self.__signals
+        del self._signals
 
     def get_group(self):
-        return self.__group
+        return self._group
 
     def get_dsetvalues(self):
-        return self.__dsetvalues
+        return self._dsetvalues
 
     def get_dsetnames(self):
-        return self.__dsetnames
+        return self._dsetnames
 
     def set_group(self, value):
-        self.__group = value
+        self._group = value
 
     def set_dsetvalues(self, value):
-        self.__dsetvalues = value
+        self._dsetvalues = value
 
     def set_dsetnames(self, value):
-        self.__dsetnames = value
+        self._dsetnames = value
 
     def del_group(self):
-        del self.__group
+        del self._group
 
     def del_dsetvalues(self):
-        del self.__dsetvalues
+        del self._dsetvalues
 
     def del_dsetnames(self):
-        del self.__dsetnames
+        del self._dsetnames
     
     group = property(get_group, set_group, del_group, "group's docstring")
     dsetvalues = property(get_dsetvalues, set_dsetvalues, del_dsetvalues, "dsetvalues's docstring")
     dsetnames = property(get_dsetnames, set_dsetnames, del_dsetnames, "dsetnames's docstring")
     signals = property(get_signals, set_signals, del_signals, "signals's docstring")
     
-    def get_senyal(self, _measurement):
+    def get_senyal(self, measurement):
         ''' return signal object '''
-        return self._signals[_measurement]
+        return self._signals[measurement]
 
     def set_senyalRect(self, _measurement, _nameR, _nameI):
         ''' set a signal in complex form, real+imaginary '''
@@ -91,18 +91,18 @@ class StreamH5File(object):
             nameVarTime= 'time' 
         else: 
             nameVarTime= "Time"
-        csenyal= signal.Signal()
+        senyal= signal.Signal()
         if (_nameI != []):
-            csenyal.set_signalRect(self._matfile[nameVarTime], self._matfile[_nameR], self._matfile[_nameI])
+            senyal.set_signalRect(self._matfile[nameVarTime], self._matfile[_nameR], self._matfile[_nameI])
             print self._matfile[nameVarTime]
             print self._matfile[_nameR]
             print self._matfile[_nameI]
         else:
             ''' array of 0 of the same length as samples '''
             emptyarray= [0 for x in self._matfile[nameVarTime]]
-            csenyal.set_signalRect(self._matfile[nameVarTime], self._matfile[_nameR], emptyarray)
+            senyal.set_signalRect(self._matfile[nameVarTime], self._matfile[_nameR], emptyarray)
             
-        self._signals[_measurement]= csenyal
+        self._signals[_measurement]= senyal
         
     def set_senyalPolar(self, _measurement, _nameM, _nameP):
         ''' set a signal in polar form, magnitude + angle '''
@@ -110,14 +110,14 @@ class StreamH5File(object):
             nameVarTime= 'time' 
         else: 
             nameVarTime= "Time"
-        csenyal= signal.SignalPMU()
+        senyal= signal.SignalPMU()
         if (_nameP != []):
-            csenyal.set_signalPolar(self.cmatfile[nameVarTime], self.cmatfile[_nameM], self.cmatfile[_nameP])
+            senyal.set_signalPolar(self._matfile[nameVarTime], self._matfile[_nameM], self._matfile[_nameP])
         else:
             ''' array of 0 of the same length as samples '''
-            emptyarray= [0 for x in self.cmatfile[nameVarTime]]
-            csenyal.set_signalPolar(self.cmatfile[nameVarTime], self.cmatfile[_nameM], emptyarray)
-        self._signals[_measurement]= csenyal
+            emptyarray= [0 for x in self._matfile[nameVarTime]]
+            senyal.set_signalPolar(self._matfile[nameVarTime], self._matfile[_nameM], emptyarray)
+        self._signals[_measurement]= senyal
         
     
     def pmu_from_cmp(self, a_instance):
@@ -142,8 +142,8 @@ class InputH5Stream(StreamH5File):
     __datasetList= []
     
 
-    def __init__(self, sourcePath, sourceH5):
-        super(InputH5Stream, self).__init__([sourcePath,sourceH5])
+    def __init__(self, sourceH5):
+        super(InputH5Stream, self).__init__(['',sourceH5])
 
     def get_dataset_list(self):
         return self.__datasetList
@@ -174,13 +174,13 @@ class InputH5Stream(StreamH5File):
         '''
         # load data into internal dataset
         self._group= self._h5file[network]
-        self._dsetValues= self.cgroup[component+'_values']
-        self._dsetnames= self.cgroup[component+'_items']
+        self._dsetValues= self._group[component+'_values']
+        self._dsetnames= self._group[component+'_items']
         idx= 1
         for item in self._dsetnames:
-            print idx, item
+#             print idx, item
             senyal= signal.Signal()
-            senyal.set_signalRect(self._dsetValues[:,0], self._dsetValues[:,idx], self._dsetValues[:,idx+1])
+            senyal.set_signal(self._dsetValues[:,0], self._dsetValues[:,idx], self._dsetValues[:,idx+1])
             senyal.set_component(component)
             self._signals[component]= senyal
             idx+= 2
