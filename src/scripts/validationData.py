@@ -17,7 +17,6 @@ import matplotlib.pyplot as mplot
 
 class ValidationData():
     ''' class for validation, things to do
-    TODO: pass the data read to the era method (both simulation and measurement)
     TODO: save the result in the same .h5 file of the simulation
     '''
     simulationSignal= []
@@ -34,6 +33,7 @@ class ValidationData():
     def selectData(self, arrayQualquiera, mensaje):
         count= 0
         indexMapping={}
+        print '\n'
         for i, meas in enumerate(arrayQualquiera):
             print '[%d] %s' % (i, meas)
             indexMapping[count]= i
@@ -42,7 +42,7 @@ class ValidationData():
             value= raw_input(mensaje)
             lindex = value.split()
         except ValueError:
-            print "Mal! Mal! Mal! Verdadera mal! Por no decir borchenoso!" 
+            print "Wrong choice...!" 
         values= []
         for idx in lindex:  
             idx= int(idx)
@@ -60,7 +60,7 @@ class ValidationData():
         options= self.selectData(iocsv.header, "Select the signal for validation (per pairs): ")
         componentName= options[0].split('.')[0]
         iocsv.load_csvValues(componentName, options[0], options[1])
-        print 'Simulation Signal ', iocsv.get_senyal(componentName).__str__()
+#         print 'Simulation Signal ', iocsv.get_senyal(componentName).__str__()
         self.referenceSignal= iocsv.get_senyal(componentName)
             
     def load_sourcesOUT(self, sourceOUT):
@@ -88,24 +88,12 @@ class ValidationData():
         componentName= optcomponent[0].split('_')[0]
         ioh5.load_h5(str(ioh5.group.name), componentName)
         if (isReference):
-            print 'Simulation Signal ', ioh5.get_senyal(componentName).__str__()
+#             print 'Simulation Signal ', ioh5.get_senyal(componentName).__str__()
             self.referenceSignal= ioh5.get_senyal(componentName).get_signalReal()
         else:
-            print 'Simulation Signal ', ioh5.get_senyal(componentName).__str__()
+#             print 'Simulation Signal ', ioh5.get_senyal(componentName).__str__()
             self.simulationSignal= ioh5.get_senyal(componentName)
         
-#     def load_pandaSource(self, _sourceCSV, _sourceH5, _modelName, _component, _variable):
-#         '''
-#         _sourceCSV: something like './res/PMUdata_Bus1VA2VALoad9PQ.csv'
-#         _sourceH5: something like 'PMUdata_Bus1VA2Venam1.h5'
-#         '''
-#         csvData = pd.read_csv(_sourceCSV,sep=",",usecols=(1,2,3,4,5,6))
-#         csvData.to_hdf(_sourceH5,'df', complib='zlib', complevel=9)  
-#         self.ioh5.open_exth5(_sourceH5)
-#         self.ioh5.open_load_h5(_modelName, _component, _variable)
-#         return self.iocsv.get_senyal('KTHLAB:EMLAB'), self.ioh5.get_senyal('block0')
-#         return (csvData, self.ioh5.get_senyal('block0'))
-
     
     def analyze_ME(self):
         ''' TODO: create a subset of signals from original signal in object senyal
@@ -134,7 +122,6 @@ class ValidationData():
         self.engineERA= ValidationERA([])
         self.engineERA.signalOut= self.simulationSignal.get_signalReal()
         self.engineERA.signalRef= self.referenceSignal.get_signalMag()
-        '''TODO: match sampletime from meas with sim '''
         self.engineERA.calculate_eigenvalues()
         print 'From simulation outputs: '
         print 'A= ', self.engineERA.Aout
@@ -152,7 +139,6 @@ class ValidationData():
             mplot.scatter(eigenvalue.real, eigenvalue.imag)
         limit_x= 1.2 # set limits for axis
         limit_y= 1.2 # set limits for axis
-#         limit=np.max(np.ceil(np.absolute(self.engineERA.elambda))) # set limits for axis
         mplot.axis([-limit_x, limit_x, -limit_y, limit_y])
         mplot.title('Eigenvalues')
         mplot.ylabel('Imaginary')
@@ -161,25 +147,29 @@ class ValidationData():
         mplot.show()
 
     def analyze_RMSE(self):
-        qa= StatisticalAnalysis([self.simulationSignal.get_signalReal(), self.referenceSignal.get_signalMag()])
+        qa= StatisticalAnalysis()
+        qa.signalOut= self.simulationSignal
+        qa.signalRef= self.referenceSignal
         # analysis results to report 
-        arrayRMSE= qa.qaRMSE()
-        print 'Results of the analysis'
+        qa.qaResampling()
+        arrayRMSE= qa.qaErrorValidation()
+        print 'Quantitative Analyisis: Results'
         print "MSE= "+ str(arrayRMSE[0])
         print "RMSE= "+ str(arrayRMSE[1])
+        print "MAE= "+ str(arrayRMSE[2])
+        print "MAPE= "+ str(qa.qaMAPE())
         # analysis results to plot  
         signalError= qa.qaSignalError()
         mplot.figure(1)
         mplot.subplot(211)
         mplot.plot(self.simulationSignal.get_sampleTime(), self.simulationSignal.get_signalReal())
         mplot.plot(self.referenceSignal.get_sampleTime(), self.referenceSignal.get_signalMag())
-        mplot.title('Error')
+        mplot.title('Qualitative Analysis')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
         mplot.grid(True)
         mplot.subplot(212)
         mplot.plot(self.simulationSignal.get_sampleTime(), signalError, 'r-')
-        mplot.title('Error')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
         mplot.grid(True)
@@ -188,29 +178,34 @@ class ValidationData():
         
 def main(argv):
     smith= ValidationData()
+    while (True):
     # Selection of signals/variables to be analyzed
-    options= ['dymola','openmodelica','psse','measurements']
-    option= smith.selectData(options, "Select the source of the reference model: ")
-    if (option[0]=='dymola'): 
-        smith.load_sourcesH5(sys.argv[1], isReference=True)
-    if (option[0]=='openmodelica'):
-        smith.load_sourcesH5(sys.argv[1], isReference=True)
-    if (option[0]=='psse'):
-        smith.load_sourcesOUT(sys.argv[1])
-    if (option[0]=='measurements'):
-        smith.load_sourcesCSV(sys.argv[1])
-    smith.load_sourcesH5(sys.argv[2])
-    
-    # Selection of validation/analysis method
-    options= ['Mode Estimation','ERA','RMSE']
-    option= smith.selectData(options, "Select the validation method: ")
-    if (option[0]== 'Mode Estimation'):
-        smith.analyze_ME()
-    if (option[0]== 'ERA'):
-        smith.analyze_ERA()
-        smith.plot_outputERA()
-    if (option[0]== 'RMSE'):
-        smith.analyze_RMSE()
+        options= ['dymola','openmodelica','psse','measurements']
+        option= smith.selectData(options, "Select the source of the reference model: ")
+        if (option[0]=='dymola'): 
+            smith.load_sourcesH5(sys.argv[1], isReference=True)
+        if (option[0]=='openmodelica'):
+            smith.load_sourcesH5(sys.argv[1], isReference=True)
+        if (option[0]=='psse'):
+            smith.load_sourcesOUT(sys.argv[1])
+        if (option[0]=='measurements'):
+            smith.load_sourcesCSV(sys.argv[1])
+        smith.load_sourcesH5(sys.argv[2])
+        # Selection of validation/analysis method
+        options= ['Mode Estimation','ERA','RMSE']
+        option= smith.selectData(options, "Select the validation method: ")
+        if (option[0]== 'Mode Estimation'):
+            smith.analyze_ME()
+        if (option[0]== 'ERA'):
+            smith.analyze_ERA()
+            smith.plot_outputERA()
+        if (option[0]== 'RMSE'):
+            smith.analyze_RMSE()
+            
+        value= raw_input('\n Do you want to continue (y/n)? ')
+        if (value=='n'):
+            break
+        
 
 if __name__ == '__main__':
     PSSE_PATH= r'C:\\Program Files (x86)\\PTI\\PSSE33\\PSSBIN'

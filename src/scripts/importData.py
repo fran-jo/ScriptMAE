@@ -16,6 +16,7 @@ class ImportData(object):
     def selectData(self, arrayQualquiera, mensaje):
         count= 0
         indexMapping={}
+        print '\n'
         for i, meas in enumerate(arrayQualquiera):
             print '[%d] %s' % (i, meas)
             indexMapping[count]= i
@@ -24,7 +25,7 @@ class ImportData(object):
             value= raw_input(mensaje)
             lindex = value.split()
         except ValueError:
-            print "Mal! Mal! Mal! Verdadera mal! Por no decir borchenoso!" 
+            print "Wrong choice ...!" 
         values= []
         for idx in lindex:  
             idx= int(idx)
@@ -34,13 +35,12 @@ class ImportData(object):
     def csv_to_h5(self, csvFile='.csv', delimiter= ','):
         sourcecsv= StreamCSVFile.InputCSVStream(csvFile, delimiter)
         sourcecsv.load_csvHeader()
-        print sourcecsv.cheader
+#         print sourcecsv.cheader
         measname= self.selectData(sourcecsv.cheader)
         componentname= measname[0].split('.')[0]
         sourcecsv.load_csvValues(componentname, measname[0], measname[1])
 #         print sourcecsv.get_senyal(componentname)
         h5name= csvFile.split('.')[1].split('/')[-1]
-        print h5name
         h5name= h5name + '.h5'
         sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'meas')
         ''' TODO name of the model to be parametrized '''
@@ -62,7 +62,6 @@ class ImportData(object):
         sourcemat.load_signals(componentsName, variablesName)
         # TODO save signals to h5 file
         h5name= matFile.split('.')[1].split('/')[-1]
-        print h5name
         h5name= h5name + '.h5'
         sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], compiler)
         ''' TODO name of the model to be parametrized '''
@@ -84,9 +83,8 @@ class ImportData(object):
         selectedOutput= self.selectData(sourceout.ch_id, "Select the data to import, in pairs:")
         sourceout.save_channelID(selectedOutput)
         sourceout.load_channelData()
-        print 'signal: ', sourceout.signals
+#         print 'signal: ', sourceout.signals
         modelname= outfile.split('.')[1].split('/')[-1]
-        print 'modelname: ', modelname
         h5name= modelname + '.h5'
         sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'psse')
         sourceh5.open_h5(modelname)
