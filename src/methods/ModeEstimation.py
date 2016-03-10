@@ -6,56 +6,154 @@ Created on Sep 23, 2015
 import numpy
 from scipy import signal
 import statsmodels.api as smapi
+from inout.StreamH5File import InputH5Stream, OutputH5Stream
 # import win32com.client
 # from mlab.releases import latest_release as matlab
 import subprocess, os
+from subprocess import Popen
 # from pymatbridge import Matlab
 
 class ModeEstimation(object):
     '''
     classdocs
     '''
-    order= 0
-    mode_freq= []
-    mode_damp= []
+    _signalOut= None
+    _signalRef= None
+    _h5resultFile= ''
+    _h5inputfile= ''
+    _matlabpath= ''
+    __order= 0
+    __signalFrequency= {}
+    __signalDamping= {}
     
     def __init__(self):
         '''
         Constructor
         '''
+
+    def get_matlabpath(self):
+        return self._matlabpath
+
+    def set_matlabpath(self, value):
+        self._matlabpath = value
+
+    def del_matlabpath(self):
+        del self._matlabpath
+
+    def get_signal_frequency(self):
+        return self.__signalFrequency
+    
+    def get_signal_damping(self):
+        return self.__signalDamping
+
+    def set_signal_frequency(self, value):
+        self.__signalFrequency = value
+
+    def set_signal_damping(self, value):
+        self.__signalDamping = value
+
+    def del_signal_frequency(self):
+        del self.__signalFrequency
+
+    def del_signal_damping(self):
+        del self.__signalDamping
+
+    def get_signal_out(self):
+        return self._signalOut
+
+    def get_signal_ref(self):
+        return self._signalRef
+
+    def set_signal_out(self, value):
+        self._signalOut = value
+
+    def set_signal_ref(self, value):
+        self._signalRef = value
+
+    def del_signal_out(self):
+        del self._signalOut
+
+    def del_signal_ref(self):
+        del self._signalRef
+
+    def get_order(self):
+        return self.__order
+
+    def set_order(self, value):
+        self.__order = value
+
+    def del_order(self):
+        del self.__order
+
 #         if platform.system()== 'Windows':
 #             self.win = __import__('win32com.client')
 #             '''Opening MATLAB application'''
-        
-    def get_order(self):
-        return self.order
-      
-    def set_order(self, _value):
-        self.order= _value
-         
-    def get_modeFrequency(self):
-        return self.mode_freq
+
+    def save_channelH5(self):
+        '''
+        this function sets the .h5 file containing the data, to be used by the matlab script
+        matlabPath where the mode estimation matlab script is
+        '''
+        channelH5= OutputH5Stream(['./res/matlab', 'mode_estimation_resources.h5'], 'none')
+        channelH5.open_h5('signal_data')
+        channelH5.save_channelData(self._signalRef)
+        channelH5.save_channelData(self._signalOut)
+        self._mecaguenlaputa= channelH5.group.name
+        channelH5.close_h5()
+        self._h5inputfile= str(channelH5.fileName)
     
-    def get_modeDamping(self):
-        return self.mode_damp
-    
-    def modeEstimationMat(self, _name):
+    def modeEstimation(self):
         # TODO: check cpu time
-        os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
+#         os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
+        os.chdir(self._matlabpath)
+        nameDataRef= self._mecaguenlaputa+ '/'+ self._signalRef.get_component()
+        nameDataSim= self._mecaguenlaputa+ '/'+ self._signalOut.get_component() 
         scriptme= []
-        ''' modify the script with the data to be processed '''
-        ''' h5file and dataset '''
         scriptme.append("clc; close all; clear;\n")
-        scriptme.append("data= h5read('"+ str(self.h5simoutput)+ "', '"+  str(self.groupName)+ "/"+ str(self.datasetName)+"');\n")
-        scriptme.append("do= data(2,:);\n")
+        scriptme.append("dataRef= h5read('"+ str(self._h5inputfile)+ "', '"+
+                        str(nameDataRef)+"');\n")
+        scriptme.append("do= dataRef(1,:);\n")
         scriptme.append("Y= do.';\n")
-        scriptme.append("order= "+ str(self.order)+ ";\n")
-        scriptme.append("[mode_freq, mode_damp]=mode_est_basic_fcn(Y, order);\n")
-        scriptme.append("hdf5write('mode_estimation.h5','/mode_estimation/freq', mode_freq,'/mode_estimation/damp', mode_damp);\n")
+        scriptme.append("order= "+ str(self.__order)+ ";\n")
+        scriptme.append("[mode_freq_ref, mode_damp_ref]=mode_est_basic_fcn(Y, order);\n")
+        scriptme.append("dataSim= h5read('"+ str(self._h5inputfile)+ "', '"+
+                        str(nameDataSim)+"');\n")
+        scriptme.append("do= dataSim(1,:);\n")
+        scriptme.append("Y= do.';\n")
+        scriptme.append("[mode_freq_sim, mode_damp_sim]=mode_est_basic_fcn(Y, order);\n")
+        # TODO me_reference/damp me_reference/freq, me_simulation/damp me_simulation/freq
+        refFreqName= '/'+ str(self._signalRef.get_component())+ '/freq'
+        refDampName= '/'+ str(self._signalRef.get_component())+ '/damp'
+        simFreqName= '/'+ str(self._signalOut.get_component())+ '/freq'
+        simDampName= '/'+ str(self._signalOut.get_component())+ '/damp'
+        self._h5resultFile= 'mode_estimation_results.h5'
+        scriptme.append("hdf5write('"+self._h5resultFile+ "','"+ 
+                        refFreqName+ "', mode_freq_ref,'"+ 
+                        refDampName+ "', mode_damp_ref,'")
+        scriptme.append(simFreqName+ "', mode_freq_sim,'"+ 
+                        simDampName+ "', mode_damp_sim);\n")
         scriptme.append("exit\n")
         filefile = open('./run_mode_estimation.m', 'w') #os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/SimuGUI/res/matlab/') before
         filefile.writelines(scriptme)
+        # This lines are for developing under eclipse, to pause the script execution
         subprocess.call("matlab -r run_mode_estimation")
+        # This two lines is the correct way of dealing with external program to finish
+#         matlab = Popen('matlab -r run_mode_estimation')
+#         matlab.communicate('input')
+#         print 'matlab.returncode ', matlab.returncode
+
+    def load_channelH5(self, matlabPath):
+        resulth5= InputH5Stream([self._matlabpath, self._h5resultFile])
+        resulth5.open_h5()
+        for group in resulth5.groupList:
+            resulth5.load_h5Data(group)
+#         dataFreqName= str(resulth5.group.name)+ '/freq'
+#         dataDampName= str(resulth5.group.name)+ '/damp'
+            self.__signalDamping[group]= resulth5.datasetValues['damp']
+            self.__signalFrequency[group]= resulth5.datasetValues['freq']
+        print 'self.mode_damp ', self.__signalDamping
+        print 'self.mode_freq ', self.__signalFrequency
+        resulth5.close_h5()
     
     def modeEstimationPY(self, senyal):
         # TODO Check CPU time
@@ -80,24 +178,19 @@ class ModeEstimation(object):
         print sys_ident
         # sys_ident contains poles of the system and frequency related to this poles (modes), so we can apply 
         # definition of Natural Frequency -> Omega_n= abs(pole) and Damping ratio -> -cos(angle(pole))
-        
-        
         # step I with signal.freqs(b,a,y) we obtain frequency response of the signal
         angularHz, responseHz = signal.freqs(b, a, senyal)
 #         print responseHz
-        
         # step II according to matlab, Wn = abs(R)
-        
         print 'angular frequency ', angularHz
         print 'frequency response ', responseHz
+        
     
-    def dnsample(self,y,order):
-        return y[::order];
+    order = property(get_order, set_order, del_order, "order's docstring")
+    signalOut = property(get_signal_out, set_signal_out, del_signal_out, "signalOut's docstring")
+    signalRef = property(get_signal_ref, set_signal_ref, del_signal_ref, "signalRef's docstring")
+    signalFrequency = property(get_signal_frequency, set_signal_frequency, del_signal_frequency, "signalFrequency's docstring")
+    signalDamping = property(get_signal_damping, set_signal_damping, del_signal_damping, "signalDamping's docstring")
+    matlabpath = property(get_matlabpath, set_matlabpath, del_matlabpath, "matlabpath's docstring")
     
-    def transpose_data(self,y):
-        return y[:,None];
-    
-    """ similar like find """
-    def find_from_sample(self,y,find_what):
-        return numpy.where(y==find_what)[0];
     

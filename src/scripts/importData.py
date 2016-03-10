@@ -37,7 +37,7 @@ class ImportData(object):
         sourcecsv.load_csvHeader()
 #         print sourcecsv.cheader
         measname= self.selectData(sourcecsv.cheader)
-        componentname= measname[0].split('.')[0]
+        componentname= ':'.join([measname[0].split(':')[0], measname[0].split(':')[1]])
         sourcecsv.load_csvValues(componentname, measname[0], measname[1])
 #         print sourcecsv.get_senyal(componentname)
         h5name= csvFile.split('.')[1].split('/')[-1]
@@ -57,19 +57,20 @@ class ImportData(object):
         sourcemat= StreamMATFile.InputMATStream(matFile, compiler)
         sourcemat.load_components()
         componentsName= self.selectData(sourcemat.components, 'Select which component data to import: ')
-        sourcemat.load_variables(sourcemat.components)
-        variablesName= self.selectData(componentsName, 'Select which signals from components to import: ')
-        sourcemat.load_signals(componentsName, variablesName)
-        # TODO save signals to h5 file
-        h5name= matFile.split('.')[1].split('/')[-1]
-        h5name= h5name + '.h5'
+        sourcemat.load_variables(componentsName)
+        componentsSignals= zip(componentsName,sourcemat.variables)
+        for component, componentSignal in componentsSignals:
+            variablesName= self.selectData(componentSignal, 'Select which signals from components to import (per pairs): ')
+            # TODO supose user only select 2 variabler per component, what if selects more?
+            sourcemat.load_signals(component, variablesName)
+        networkname= matFile.split('.')[1].split('/')[-1]
+        h5name= networkname + '.h5'
         sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], compiler)
-        ''' TODO name of the model to be parametrized '''
-        sourceh5.open_h5('WhiteNoiseModel')
-        componentsName.insert(0, 'sampletime')
-        sourceh5.set_senyal(componentsName, sourcemat.get_senyal(componentsName))
-        sourceh5.save_h5Names(componentsName, variablesName)
-        sourceh5.save_h5Values(componentsName)
+        sourceh5.open_h5(networkname)
+        for component in sourcemat.signalData.keys():
+            signalNames= [component+'.V', component+'.angle']
+            sourceh5.save_h5Names(component, signalNames)
+            sourceh5.save_h5Values(component, sourcemat.signalData[component])
         sourceh5.close_h5()
         
     def out_to_h5(self, binpath= './', outfile= '.out'):
@@ -84,10 +85,10 @@ class ImportData(object):
         sourceout.save_channelID(selectedOutput)
         sourceout.load_channelData()
 #         print 'signal: ', sourceout.signals
-        modelname= outfile.split('.')[1].split('/')[-1]
-        h5name= modelname + '.h5'
+        networkname= outfile.split('.')[1].split('/')[-1]
+        h5name= networkname + '.h5'
         sourceh5= StreamH5File.OutputH5Stream(['./res', h5name], 'psse')
-        sourceh5.open_h5(modelname)
+        sourceh5.open_h5(networkname)
         for component in sourceout.signals.keys():
             sourceh5.save_h5Names(component, sourceout.selectedId[component])
             sourceh5.save_h5Values(component, sourceout.signals[component])

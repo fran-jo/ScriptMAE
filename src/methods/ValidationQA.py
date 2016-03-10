@@ -85,7 +85,4 @@ class StatisticalAnalysis(QuantitativeAnalysis):
         error= np.subtract(np.array(self._signalRef.get_signalReal()), np.array(self._signalOut.get_signalReal()))
         #TODO error signal must be a new object signal with own sampletime
         return error
-    
-    ''' TODO: MAPE, MASE, sMAPE, GRMSE '''
-    ''' this statistics offer interpretation for forecasting / prediction. RMSE, MSE and MAE are suitable for comparison of signals'''
-    
+      

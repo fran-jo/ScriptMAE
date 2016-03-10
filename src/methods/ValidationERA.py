@@ -178,5 +178,4 @@ class ValidationERA(QuantitativeAnalysis):
     eigenVectorOut = property(get_vlambda_out, set_vlambda_out, del_vlambda_out, "vlambdaOut's docstring")
     eigenValueRef = property(get_elambda_ref, set_elambda_ref, del_elambda_ref, "elambdaRef's docstring")
     eigenVectorRef = property(get_vlambda_ref, set_vlambda_ref, del_vlambda_ref, "vlambdaRef's docstring")
-#         ''' TODO: this functions shows a warning, catch it and print it in the GUI '''
         

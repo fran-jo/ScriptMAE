@@ -8,7 +8,7 @@ from methods.ModeEstimation import ModeEstimation
 from methods.ValidationERA import ValidationERA 
 from methods.ValidationQA import StatisticalAnalysis
 from inout.StreamCSVFile import InputCSVStream
-from inout.StreamH5File import InputH5Stream
+from inout.StreamH5File import InputH5Stream, OutputH5Stream
 from inout.StreamOUTFile import InputOUTStream
 # import pandas as pd
 # import numpy
@@ -20,7 +20,10 @@ class ValidationData():
     TODO: save the result in the same .h5 file of the simulation
     '''
     simulationSignal= []
+    h5referenceIn= None
+    h5referenceOut= None
     referenceSignal= []
+    referenceMesurement= {}
     
     def __init__(self):
         ''' 
@@ -52,17 +55,33 @@ class ValidationData():
     def load_sourcesCSV(self, sourceCSV):
         ''' 
         sourceCSV: .csv file, i.e. ./res/File_8.csv
-        component: name of the component, for retrieving the h5.dataset
-        signalComplex: array with pair name of signals [meas, angle] that refer to a complex signal
+        reads data from .csv and stores desired data into .h5
         '''
         iocsv= InputCSVStream(sourceCSV, ',')
         iocsv.load_csvHeader()
-        options= self.selectData(iocsv.header, "Select the signal for validation (per pairs): ")
-        componentName= options[0].split('.')[0]
-        iocsv.load_csvValues(componentName, options[0], options[1])
-#         print 'Simulation Signal ', iocsv.get_senyal(componentName).__str__()
+        measurementName= self.selectData(iocsv.header, "Select the signal for validation (per pairs): ")
+        componentName= ':'.join(measurementName[0].split(':')[:-1])
+        iocsv.load_csvValues(componentName, measurementName[0], measurementName[1])
+#         iocsv.timestamp2sample(componentName)
+        # TODO subset of signals, this pmu data has 1 milion samples, need to match the simulation 10k or 100k
         self.referenceSignal= iocsv.get_senyal(componentName)
-            
+        self.referenceMesurement[componentName]= measurementName
+        
+    def sourceCSV_to_H5(self, sourceCSV):
+        componentName= self.referenceMesurement.keys()[0]
+        measurementName= self.referenceMesurement.values()[0]
+        h5name= sourceCSV.split('.')[1].split('/')[-1]
+        h5name= h5name + '.h5'
+        self.h5referenceOut= OutputH5Stream(['./res', h5name], 'meas')
+        ''' TODO name of the model to be parametrized '''
+        self.h5referenceOut.open_h5(componentName)
+#         measurementName.insert(0, 'sampletime')
+#         print 'mesurementName ', measurementName
+#         sourceh5.set_senyales(componentName, iocsv.get_senyal(componentName))
+        self.h5referenceOut.save_h5Names(componentName, measurementName)
+        self.h5referenceOut.save_h5Values(componentName,  self.referenceSignal)
+        self.h5referenceOut.close_h5()
+           
     def load_sourcesOUT(self, sourceOUT):
         '''
         sourceOUT: 
@@ -75,13 +94,16 @@ class ValidationData():
         component= sourceout.signals.keys()
         self.referenceSignal= sourceout.signals[component[0]]
         
+    def load_sourceMAT(self, sourceMAT, compiler):
+        pass
+    
     def load_sourcesH5(self, sourceH5, isReference=False):
         ''' 
         sourceH5: .h5 file, i.e. './res/PMUdata_Bus1VA2VALoad9PQ.h5'
-        compiler: 
         isReference: 
         '''
-        ioh5= InputH5Stream(sourceH5)
+        # TODO aware of the dir, need to change
+        ioh5= InputH5Stream(['C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE', sourceH5])
         ioh5.open_h5()
         ioh5.load_h5Group()
         optcomponent= self.selectData(ioh5.datasetList, "Select the signal to be validated: ")
@@ -96,23 +118,42 @@ class ValidationData():
         
     
     def analyze_ME(self):
-        ''' TODO: create a subset of signals from original signal in object senyal
-        call mode estimation method with each subset, inside a loop '''
-        meEngine= ModeEstimation()
-        value= raw_input("Order to apply: ")
-        meEngine.set_order(value)
-        ''' 1) mode Estimation with PMU signal '''
-        if self.referenceSignal!= None:
-            # TODO fix this method with new implementation of me
-            meEngine.modeEstimationMat('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/lib/mes.jar', self.referenceSignal)
-        ''' 2) mode Estimation with simulation signal '''
-        if self.simulationSignal!= None:
-            # TODO study the behavior of this implementation
-            print len(self.simulationSignal)
-            meEngine.modeEstimationPY(self.simulationSignal)
-        ''' TODO: pass the whole signal to Vedran mode estimation '''
-#         print 'Model Frequency ', meEngine.get_modeFrequency()
-#         print 'Model Damping  ', meEngine.get_modeDamping()
+        ''' TODO: this function works with reference signal and simulation signal '''
+        self.meEngine= ModeEstimation()
+        self.meEngine.matlabpath= 'C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab'
+        value= raw_input("\nOrder to apply: ")
+        self.meEngine.set_order(value)
+        self.meEngine.signalRef= self.referenceSignal
+        self.meEngine.signalOut= self.simulationSignal
+        self.meEngine.save_channelH5()
+        self.meEngine.modeEstimation()
+        self.meEngine.load_channelH5()
+        programPause = raw_input("Press the <ENTER> key to continue...")
+#         self.meEngine.load_ModeEstimation('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
+        
+    def plot_outputME(self):
+        # 1st plot damping
+        mplot.figure(1)
+        mplot.subplot(211)
+        for key, values in self.meEngine.signalDamping.iteritems():
+            xdamp= range(len(values))
+            mplot.plot(xdamp, values, 'ro')
+            for i, txt in enumerate(values):
+                mplot.annotate(txt, (xdamp[i], values[i]))
+        mplot.title('Signal Damping')
+        mplot.ylabel('Values')
+        mplot.grid(True)
+        mplot.subplot(212)
+        for key, values in self.meEngine.signalFrequency.iteritems():
+            xfreq= range(len(values))
+            mplot.plot(xfreq, values, 'ro')
+            for i, txt in enumerate(values):
+                mplot.annotate(txt, (xfreq[i], values[i]))
+        mplot.title('Signal Frequency')
+        mplot.xlabel('Time (s)')
+        mplot.ylabel('Values')
+        mplot.grid(True)
+        mplot.show()
         
     def analyze_ERA(self):
         '''
@@ -195,7 +236,9 @@ def main(argv):
         options= ['Mode Estimation','ERA','RMSE']
         option= smith.selectData(options, "Select the validation method: ")
         if (option[0]== 'Mode Estimation'):
+            smith.sourceCSV_to_H5(sys.argv[1])
             smith.analyze_ME()
+            smith.plot_outputME()
         if (option[0]== 'ERA'):
             smith.analyze_ERA()
             smith.plot_outputERA()

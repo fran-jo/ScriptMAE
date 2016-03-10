@@ -25,7 +25,8 @@ class StreamCSVFile(object):
         _sourceFile: .csv file path
         _delimiter: delimiter of fields
         '''
-        self._csvFile= panda.read_csv(sourceFile, sep=delimiter)
+        # TODO solve the issue of signal length
+        self._csvFile= panda.read_csv(sourceFile, sep=delimiter, nrows=1000)
 
     def get_csv_file(self):
         return self._csvFile
@@ -101,12 +102,12 @@ class InputCSVStream(StreamCSVFile):
         '''
         senyal= signal.SignalPMU()
         if (senyalI != []):
-            senyal.set_signalPolar(list(self._csvFile['Time']), 
+            senyal.set_signalPolar(list(self._csvFile['Timestamp']), 
                                     list(self._csvFile[senyalR]), list(self._csvFile[senyalI]))
         else:
             ''' array of 0 of the same length as samples '''
-            emptyarray= [-1 for x in self._csvFile['Time']]
-            senyal.set_signalPolar(list(self._csvFile['Time']), 
+            emptyarray= [-1 for x in self._csvFile['Timestamp']]
+            senyal.set_signalPolar(list(self._csvFile['Timestamp']), 
                                     list(self._csvFile[senyalR]), emptyarray)
         senyal.set_component(componame)    
         self._senyales[componame]= senyal
@@ -118,10 +119,10 @@ class InputCSVStream(StreamCSVFile):
         tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") 
                   for x in self._senyales[componame].get_sampleTime()]
         sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
-        self._senyales[componame].set_sampleTime(sampletime)
         senyal= signal.SignalPMU()
         senyal.set_signalPolar(sampletime, self._senyales[componame].get_signalMag(), 
-                                self._senyales[componame].get_signalPolar())
+                                self._senyales[componame].get_signalPhase())
+        senyal.set_component(componame)
         self._senyales[componame]= senyal
     
     def close_csv(self):

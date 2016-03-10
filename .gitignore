@@ -10,3 +10,6 @@ lib/mes.jar
 *.mat
 *.out
 /old/
+
+res/matlab/run_mode_estimation_basic.m
+res/matlab/run_mode_estimation_ori.m

@@ -19,6 +19,7 @@ class StreamMATFile(object):
         Constructor
         '''
         self._resultFile= SimRes(params[0])
+        print self._resultFile
         self._compiler= params[1]
     
 class InputMATStream(StreamMATFile):
@@ -27,7 +28,7 @@ class InputMATStream(StreamMATFile):
     '''
     __components= []
     __variables= []
-    __signals= {}
+    __signalData= {}
     
     def __init__(self, matfile, compiler= 'omc'):
         super(InputMATStream,self).__init__([matfile, compiler])
@@ -83,15 +84,14 @@ class InputMATStream(StreamMATFile):
             nameVarTime= 'time' 
         else: 
             nameVarTime= "Time"
-        ''' array of 0 of the same length as samples '''
-        emptyarray= [0 for x in self._resultFile[nameVarTime]]
-        for var in variable:
-            senyal= signal.Signal()
-            fullname= component+ '.'+ var
-            senyal.set_signal(self._resultFile[nameVarTime], self._resultFile[fullname], emptyarray)
-            self.__signals[fullname]= senyal
+        senyal= signal.Signal()
+        firstSignal= component+ '.'+ variable[0]
+        secondSignal= component+ '.'+ variable[1]
+        senyal.set_signal(self._resultFile[nameVarTime], self._resultFile[firstSignal], 
+                          self._resultFile[secondSignal])
+        self.__signalData[component]= senyal
             
-        print self.__signals
+        print self.__signalData
             
     components = property(get_components, set_components, del_components, "components's docstring")
     variables = property(get_variables, set_variables, del_variables, "variables's docstring")
