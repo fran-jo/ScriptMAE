@@ -23,6 +23,7 @@ class StreamH5File(object):
     _group= None
     _dsetnames= None
     _dsetvalues= None
+    _compiler= ''
     _signals= {}
     
     def __init__(self, params, compiler='omc'):
@@ -40,8 +41,7 @@ class StreamH5File(object):
         if (len(params)> 2):
             self._matfile= SimRes(params[2])
 #         fileName= time.strftime("%H_%M_%S")+ 'SimulationOutputs.h5'
-        ''' a '''
-        self.compiler= compiler
+        self._compiler= compiler
 
     def get_file_name(self):
         return self._fileName
@@ -98,39 +98,24 @@ class StreamH5File(object):
         ''' return signal object '''
         return self._signals[measurement]
 
-    def set_senyalRect(self, _measurement, _nameR, _nameI):
+    def set_senyal(self, measurement, nameR, nameI):
         ''' set a signal in complex form, real+imaginary '''
-        if self.compiler== 'omc': 
+        if self._compiler== 'omc': 
             nameVarTime= 'time' 
         else: 
             nameVarTime= "Time"
         senyal= signal.Signal()
-        if (_nameI != []):
-            senyal.set_signalRect(self._matfile[nameVarTime], self._matfile[_nameR], self._matfile[_nameI])
+        if (nameI != []):
+            senyal.set_signalRect(self._matfile[nameVarTime], self._matfile[nameR], self._matfile[nameI])
             print self._matfile[nameVarTime]
-            print self._matfile[_nameR]
-            print self._matfile[_nameI]
+            print self._matfile[nameR]
+            print self._matfile[nameI]
         else:
             ''' array of 0 of the same length as samples '''
             emptyarray= [0 for x in self._matfile[nameVarTime]]
-            senyal.set_signalRect(self._matfile[nameVarTime], self._matfile[_nameR], emptyarray)
+            senyal.set_signalRect(self._matfile[nameVarTime], self._matfile[nameR], emptyarray)
             
-        self._signals[_measurement]= senyal
-        
-    def set_senyalPolar(self, _measurement, _nameM, _nameP):
-        ''' set a signal in polar form, magnitude + angle '''
-        if self.compiler== 'omc': 
-            nameVarTime= 'time' 
-        else: 
-            nameVarTime= "Time"
-        senyal= signal.SignalPMU()
-        if (_nameP != []):
-            senyal.set_signalPolar(self._matfile[nameVarTime], self._matfile[_nameM], self._matfile[_nameP])
-        else:
-            ''' array of 0 of the same length as samples '''
-            emptyarray= [0 for x in self._matfile[nameVarTime]]
-            senyal.set_signalPolar(self._matfile[nameVarTime], self._matfile[_nameM], emptyarray)
-        self._signals[_measurement]= senyal
+        self._signals[measurement]= senyal
     
     def close_h5(self):
         self._h5file.close()
@@ -139,7 +124,7 @@ class StreamH5File(object):
     
     def pmu_from_cmp(self, a_instance):
         '''Given an instance of A, return a new instance of B.'''
-        return signal.SignalPMU(a_instance.field)
+        return signal.Signal(a_instance.field)
     
     def calc_phasorSignal(self):
         ''' function that converts the internal complex signal into polar form '''
@@ -274,23 +259,14 @@ class OutputH5Stream(StreamH5File):
 #             self._dsetvalues= self._group.create_dataset(component+'_values', 
 #                                                       (self._signals[component].get_csamples(),len(self._signals)*2+1),
 #                                                       chunks=(100,3))
-            self._dsetvalues= self._group.create_dataset(component+'_values', 
-                                                      (signalvalues.get_samples(),3),
+            self._dsetvalues= self._group.create_dataset(component+'_values', (signalvalues.samples,3),
                                                       chunks=(100,3))
         else:
             self._dsetvalues= self._group[component+'_values']
-        column= 1
         ''' signals can store two type of data, complex or polar, values are saved per pairs '''
-        lasenyal= signalvalues
-        self._dsetvalues[:,0]= lasenyal.get_sampleTime()
-        if isinstance(lasenyal, signal.SignalPMU):  
-            self._dsetvalues[:,column]= lasenyal.get_signalMag()
-            column+= 1
-            self._dsetvalues[:,column]= lasenyal.get_signalPhase()
-        else: 
-            self._dsetvalues[:,column]= lasenyal.get_signalReal()
-            column+= 1
-            self._dsetvalues[:,column]= lasenyal.get_signalImaginary()
+        self._dsetvalues[:,0]= signalvalues.sampletime
+        self._dsetvalues[:,1]= signalvalues.magnitude
+        self._dsetvalues[:,2]= signalvalues.phase
     
     def save_h5Names(self, component, signalnames):
         ''' Creates the .h5, in append mode, with an internal structure for signal names.
@@ -318,14 +294,11 @@ class OutputH5Stream(StreamH5File):
         '''
         if not senyal.get_component() in self._group:
             self._dsetvalues= self._group.create_dataset(senyal.get_component(), 
-                                                      (senyal.get_samples(),1),
+                                                      (senyal.samples,1),
                                                       chunks=(100,1))
         else:
             self._dsetvalues= self._group[senyal.get_component()]
-        if isinstance(senyal, signal.SignalPMU): 
-            self._dsetvalues[:,0]= senyal.get_signalMag()
-        else:
-            self._dsetvalues[:,0]= senyal.get_signalReal()
+        self._dsetvalues[:,0]= senyal.magnitude
             
         
     senyales = property(get_senyales, set_senyales, del_senyales, "senyales's docstring")

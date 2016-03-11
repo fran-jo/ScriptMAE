@@ -17,5 +17,5 @@ Inputs for ERA Method
 ./res/openmodelica/PMUdata_Bus1VA2VALoad9PQ.h5
 
 Inputs for Statistical Analysis
-./res/psse/out_9bus_2.csv
+./res/psse/out_9bus_2.out
 ./res/dymola/IEEENetworks2.IEEE_9Bus.h5

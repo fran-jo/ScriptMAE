@@ -55,12 +55,7 @@ class StreamCSVFile(object):
         tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") for x in self._senyales[variable].get_sampleTime()]
         sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
 #         print sampletime
-        return sampletime
-
-    def pmu_from_cmp(self, a_instance):
-        '''Given an instance of A, return a new instance of B.'''
-        return signal.SignalPMU(a_instance.field)  
-    
+        return sampletime 
     
     csvFile = property(get_csv_file, set_csv_file, del_csv_file, "csvFile's docstring")
     header = property(get_header, set_header, del_header, "header's docstring")
@@ -100,14 +95,14 @@ class InputCSVStream(StreamCSVFile):
         senyalR: name of the real,magnitude signal
         senyalI: name of the imaginary,phase signal 
         '''
-        senyal= signal.SignalPMU()
+        senyal= signal.Signal()
         if (senyalI != []):
-            senyal.set_signalPolar(list(self._csvFile['Timestamp']), 
+            senyal.set_signal(list(self._csvFile['Timestamp']), 
                                     list(self._csvFile[senyalR]), list(self._csvFile[senyalI]))
         else:
             ''' array of 0 of the same length as samples '''
             emptyarray= [-1 for x in self._csvFile['Timestamp']]
-            senyal.set_signalPolar(list(self._csvFile['Timestamp']), 
+            senyal.set_signal(list(self._csvFile['Timestamp']), 
                                     list(self._csvFile[senyalR]), emptyarray)
         senyal.set_component(componame)    
         self._senyales[componame]= senyal
@@ -117,12 +112,13 @@ class InputCSVStream(StreamCSVFile):
         _variable name of the measurement to get the signal from 
         '''
         tiempos= [datetime.strptime(x,"%Y/%m/%d %H:%M:%S.%f") 
-                  for x in self._senyales[componame].get_sampleTime()]
+                  for x in self._senyales[componame].sampletime]
         sampletime= [(t- tiempos[0]).microseconds/1000 for t in tiempos]
-        senyal= signal.SignalPMU()
-        senyal.set_signalPolar(sampletime, self._senyales[componame].get_signalMag(), 
-                                self._senyales[componame].get_signalPhase())
+        senyal= signal.Signal()
+        senyal.set_signal(sampletime, self._senyales[componame].magnitude, 
+                                self._senyales[componame].phase)
         senyal.set_component(componame)
+        self._senyales[componame]= None
         self._senyales[componame]= senyal
     
     def close_csv(self):

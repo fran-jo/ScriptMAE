@@ -3,22 +3,21 @@ Created on Sep 23, 2015
 
 @author: fran_jo
 '''
-import numpy
+
 from scipy import signal
 import statsmodels.api as smapi
+import subprocess, os
+# from subprocess import Popen
+from validationMethod import ValidationMethod
 from inout.StreamH5File import InputH5Stream, OutputH5Stream
 # import win32com.client
-# from mlab.releases import latest_release as matlab
-import subprocess, os
-from subprocess import Popen
+
 # from pymatbridge import Matlab
 
-class ModeEstimation(object):
+class ModeEstimation(ValidationMethod):
     '''
     classdocs
     '''
-    _signalOut= None
-    _signalRef= None
     _h5resultFile= ''
     _h5inputfile= ''
     _matlabpath= ''
@@ -26,10 +25,8 @@ class ModeEstimation(object):
     __signalFrequency= {}
     __signalDamping= {}
     
-    def __init__(self):
-        '''
-        Constructor
-        '''
+    def __init__(self, params):
+        super(ModeEstimation, self).__init__(params)
 
     def get_matlabpath(self):
         return self._matlabpath
@@ -58,24 +55,6 @@ class ModeEstimation(object):
     def del_signal_damping(self):
         del self.__signalDamping
 
-    def get_signal_out(self):
-        return self._signalOut
-
-    def get_signal_ref(self):
-        return self._signalRef
-
-    def set_signal_out(self, value):
-        self._signalOut = value
-
-    def set_signal_ref(self, value):
-        self._signalRef = value
-
-    def del_signal_out(self):
-        del self._signalOut
-
-    def del_signal_ref(self):
-        del self._signalRef
-
     def get_order(self):
         return self.__order
 
@@ -102,7 +81,7 @@ class ModeEstimation(object):
         channelH5.close_h5()
         self._h5inputfile= str(channelH5.fileName)
     
-    def modeEstimation(self):
+    def compute_method(self, parametro= None):
         # TODO: check cpu time
 #         os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
         os.chdir(self._matlabpath)
@@ -142,7 +121,7 @@ class ModeEstimation(object):
 #         matlab.communicate('input')
 #         print 'matlab.returncode ', matlab.returncode
 
-    def load_channelH5(self, matlabPath):
+    def load_channelH5(self):
         resulth5= InputH5Stream([self._matlabpath, self._h5resultFile])
         resulth5.open_h5()
         for group in resulth5.groupList:
@@ -187,8 +166,6 @@ class ModeEstimation(object):
         
     
     order = property(get_order, set_order, del_order, "order's docstring")
-    signalOut = property(get_signal_out, set_signal_out, del_signal_out, "signalOut's docstring")
-    signalRef = property(get_signal_ref, set_signal_ref, del_signal_ref, "signalRef's docstring")
     signalFrequency = property(get_signal_frequency, set_signal_frequency, del_signal_frequency, "signalFrequency's docstring")
     signalDamping = property(get_signal_damping, set_signal_damping, del_signal_damping, "signalDamping's docstring")
     matlabpath = property(get_matlabpath, set_matlabpath, del_matlabpath, "matlabpath's docstring")

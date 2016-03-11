@@ -62,10 +62,11 @@ class ValidationData():
         measurementName= self.selectData(iocsv.header, "Select the signal for validation (per pairs): ")
         componentName= ':'.join(measurementName[0].split(':')[:-1])
         iocsv.load_csvValues(componentName, measurementName[0], measurementName[1])
-#         iocsv.timestamp2sample(componentName)
+        iocsv.timestamp2sample(componentName)
         # TODO subset of signals, this pmu data has 1 milion samples, need to match the simulation 10k or 100k
         self.referenceSignal= iocsv.get_senyal(componentName)
         self.referenceMesurement[componentName]= measurementName
+        iocsv.senyales[componentName]= None
         
     def sourceCSV_to_H5(self, sourceCSV):
         componentName= self.referenceMesurement.keys()[0]
@@ -119,16 +120,16 @@ class ValidationData():
     
     def analyze_ME(self):
         ''' TODO: this function works with reference signal and simulation signal '''
-        self.meEngine= ModeEstimation()
+        self.meEngine= ModeEstimation([self.simulationSignal, self.referenceSignal])
         self.meEngine.matlabpath= 'C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab'
         value= raw_input("\nOrder to apply: ")
         self.meEngine.set_order(value)
-        self.meEngine.signalRef= self.referenceSignal
-        self.meEngine.signalOut= self.simulationSignal
+#         self.meEngine.signalRef= 
+#         self.meEngine.signalOut= 
         self.meEngine.save_channelH5()
         self.meEngine.modeEstimation()
-        self.meEngine.load_channelH5()
         programPause = raw_input("Press the <ENTER> key to continue...")
+        self.meEngine.load_channelH5()
 #         self.meEngine.load_ModeEstimation('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
         
     def plot_outputME(self):
@@ -160,23 +161,24 @@ class ValidationData():
         _measSignal as output
         _simSignal as input
         '''
-        self.engineERA= ValidationERA([])
-        self.engineERA.signalOut= self.simulationSignal.get_signalReal()
-        self.engineERA.signalRef= self.referenceSignal.get_signalMag()
+        self.engineERA= ValidationERA([self.simulationSignal.magnitude,
+                                       self.referenceSignal.magnitude])
+#         self.engineERA.signalOut= 
+#         self.engineERA.signalRef= 
         self.engineERA.calculate_eigenvalues()
         print 'From simulation outputs: '
-        print 'A= ', self.engineERA.Aout
-        print 'B= ', self.engineERA.Bout
-        print 'C= ', self.engineERA.Cout
+        print 'A= ', self.engineERA.eraResOut.A
+        print 'B= ', self.engineERA.eraResOut.B
+        print 'C= ', self.engineERA.eraResOut.C
         print 'From reference outputs: '
-        print 'A= ', self.engineERA.Aref
-        print 'B= ', self.engineERA.Bref
-        print 'C= ', self.engineERA.Cref
+        print 'A= ', self.engineERA.eraResRef.A
+        print 'B= ', self.engineERA.eraResRef.B
+        print 'C= ', self.engineERA.eraResRef.C
         
     def plot_outputERA(self):
-        for eigenvalue in self.engineERA.eigenValueOut:
+        for eigenvalue in self.engineERA.eraResOut.lambdaValues:
             mplot.scatter(eigenvalue.real, eigenvalue.imag)
-        for eigenvalue in self.engineERA.eigenValueRef:
+        for eigenvalue in self.engineERA.eraResRef.lambdaValues:
             mplot.scatter(eigenvalue.real, eigenvalue.imag)
         limit_x= 1.2 # set limits for axis
         limit_y= 1.2 # set limits for axis
@@ -188,29 +190,35 @@ class ValidationData():
         mplot.show()
 
     def analyze_RMSE(self):
-        qa= StatisticalAnalysis()
-        qa.signalOut= self.simulationSignal
-        qa.signalRef= self.referenceSignal
+        qa= StatisticalAnalysis([self.simulationSignal,self.referenceSignal])
+#         qa.signalOut= 
+#         qa.signalRef= 
         # analysis results to report 
         qa.qaResampling()
-        arrayRMSE= qa.qaErrorValidation()
-        print 'Quantitative Analyisis: Results'
-        print "MSE= "+ str(arrayRMSE[0])
-        print "RMSE= "+ str(arrayRMSE[1])
-        print "MAE= "+ str(arrayRMSE[2])
-        print "MAPE= "+ str(qa.qaMAPE())
+        qa.compute_method('MAE')
+        print "MAE= ", qa.scalarOutput
+        qa.compute_method('MSE')
+        print "MSE= ", qa.scalarOutput
+        qa.compute_method('RMSE') 
+        print "RMSE= ", qa.scalarOutput
+#         arrayRMSE= qa.qaErrorValidation()
+#         print 'Quantitative Analyisis: Results'
+#         print "MSE= "+ str(arrayRMSE[0])
+#         print "RMSE= "+ str(arrayRMSE[1])
+#         print "MAE= "+ str(arrayRMSE[2])
+#         print "MAPE= "+ str(qa.qaMAPE())
         # analysis results to plot  
         signalError= qa.qaSignalError()
         mplot.figure(1)
         mplot.subplot(211)
-        mplot.plot(self.simulationSignal.get_sampleTime(), self.simulationSignal.get_signalReal())
-        mplot.plot(self.referenceSignal.get_sampleTime(), self.referenceSignal.get_signalMag())
+        mplot.plot(self.simulationSignal.sampletime, self.simulationSignal.magnitude)
+        mplot.plot(self.referenceSignal.sampletime, self.referenceSignal.magnitude)
         mplot.title('Qualitative Analysis')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
         mplot.grid(True)
         mplot.subplot(212)
-        mplot.plot(self.simulationSignal.get_sampleTime(), signalError, 'r-')
+        mplot.plot(self.simulationSignal.sampletime, signalError, 'r-')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
         mplot.grid(True)
