@@ -6,7 +6,7 @@ Created on 11 mar 2016
 
 import numpy as np
 
-class ValidationMethod(object):
+class QuantitativeAnalysis(object):
     '''
     classdocs
     '''

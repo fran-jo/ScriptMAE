@@ -16,7 +16,6 @@ class ImportData(object):
     def selectData(self, arrayQualquiera, mensaje):
         count= 0
         indexMapping={}
-        print '\n'
         for i, meas in enumerate(arrayQualquiera):
             print '[%d] %s' % (i, meas)
             indexMapping[count]= i
@@ -70,7 +69,7 @@ class ImportData(object):
             sourceh5.save_h5Values(componentname, sourcemat.signalData[componentname])
         sourceh5.close_h5()
         
-    def out_to_h5(self, binpath= './', outfile= '.out'):
+    def out_to_h5(self, outfile= '.out', binpath= './'):
         PSSE_PATH= binpath
         sys.path.append(PSSE_PATH)
         os.environ['PATH']+= ';'+ PSSE_PATH
@@ -100,6 +99,6 @@ if __name__ == '__main__':
     if (option[0]=='openmodelica'):
         theimporter.mat_to_h5(sys.argv[1], 'openmodelica')
     if (option[0]=='psse'):
-        theimporter.out_to_h5(sys.argv[1], sys.argv[2])
+        theimporter.out_to_h5(sys.argv[1])
     if (option[0]=='measurements'):
         theimporter.csv_to_h5(sys.argv[1],',')

@@ -64,14 +64,14 @@ class InputOUTStream(StreamOUTFile):
     def save_channelID(self, selectedOutput):
         i= 0
         while (i< len(selectedOutput)):
-            cn= selectedOutput[i].split(' ')[2:]
-            a= cn[0][1:]
-            b= cn[1][:-1]
-            component= a+ '_'+ b
-            print "component name: ", component
+#             print selectedOutput[i]
+            cn= selectedOutput[i].split('_')[:-1]
+#             a= cn[0][1:]
+#             b= cn[1][:-1]
+            component= cn[0]+ '_'+ cn[1]
             self.__selectedId[component]= (selectedOutput[i], selectedOutput[i+1])
             i= i+ 2
-        print len(self.__selectedId)
+#         print len(self.__selectedId)
        
     def load_outputData(self):
         sh_ttl, self.__outid, self.__outdata= self._chnfobj.get_data()
@@ -84,7 +84,7 @@ class InputOUTStream(StreamOUTFile):
             senyal= signal.Signal()
             senyal.set_signal(self.__outdata['time'], self.__outdata[iclau], self.__outdata[ivalor])
             self.__signals[key]= senyal
-        print len(self.__signals)
+#         print len(self.__signals)
         
     signals = property(get_signals, set_signals, del_signals, "signals's docstring")
     ch_id = property(get_outid, set_outid, del_outid, "ch_id's docstring")

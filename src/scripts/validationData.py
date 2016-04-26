@@ -11,8 +11,8 @@ from inout.StreamCSVFile import InputCSVStream
 from inout.StreamH5File import InputH5Stream, OutputH5Stream
 from inout.StreamOUTFile import InputOUTStream
 # import pandas as pd
-# import numpy
-import matplotlib.pyplot as mplot 
+import numpy as np
+import matplotlib.pyplot as mplot
 
 
 class ValidationData():
@@ -36,7 +36,6 @@ class ValidationData():
     def selectData(self, arrayQualquiera, mensaje):
         count= 0
         indexMapping={}
-        print '\n'
         for i, meas in enumerate(arrayQualquiera):
             print '[%d] %s' % (i, meas)
             indexMapping[count]= i
@@ -116,6 +115,7 @@ class ValidationData():
         else:
 #             print 'Simulation Signal ', ioh5.get_senyal(componentName).__str__()
             self.simulationSignal= ioh5.get_senyal(componentName)
+        ioh5.close_h5()
         
     
     def analyze_ME(self):
@@ -165,7 +165,7 @@ class ValidationData():
                                        self.referenceSignal.magnitude])
 #         self.engineERA.signalOut= 
 #         self.engineERA.signalRef= 
-        self.engineERA.calculate_eigenvalues()
+        self.engineERA.compute_method()
         print 'From simulation outputs: '
         print 'A= ', self.engineERA.eraResOut.A
         print 'B= ', self.engineERA.eraResOut.B
@@ -183,10 +183,16 @@ class ValidationData():
         limit_x= 1.2 # set limits for axis
         limit_y= 1.2 # set limits for axis
         mplot.axis([-limit_x, limit_x, -limit_y, limit_y])
+        axisline= np.linspace(-limit_x, limit_y)
+        zerosline= np.zeros(len(axisline))
+        mplot.plot(axisline,zerosline,color='black')
+        mplot.plot(zerosline,axisline,color='black')
+        circulo= mplot.Circle((0,0), radius=1, color='black', fill=False)
         mplot.title('Eigenvalues')
         mplot.ylabel('Imaginary')
         mplot.xlabel('Real')
         mplot.grid(True)
+        mplot.gcf().gca().add_artist(circulo)
         mplot.show()
 
     def analyze_RMSE(self):
@@ -201,6 +207,8 @@ class ValidationData():
         print "MSE= ", qa.scalarOutput
         qa.compute_method('RMSE') 
         print "RMSE= ", qa.scalarOutput
+        qa.compute_method('MBD') 
+        print "MBD= ", qa.scalarOutput
 #         arrayRMSE= qa.qaErrorValidation()
 #         print 'Quantitative Analyisis: Results'
 #         print "MSE= "+ str(arrayRMSE[0])
@@ -211,16 +219,18 @@ class ValidationData():
         signalError= qa.qaSignalError()
         mplot.figure(1)
         mplot.subplot(211)
-        mplot.plot(self.simulationSignal.sampletime, self.simulationSignal.magnitude)
-        mplot.plot(self.referenceSignal.sampletime, self.referenceSignal.magnitude)
+        mplot.plot(self.simulationSignal.sampletime, self.simulationSignal.magnitude, label='Modelica signal')
+        mplot.plot(self.referenceSignal.sampletime, self.referenceSignal.magnitude, label='Reference signal')
         mplot.title('Qualitative Analysis')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
+        mplot.legend(loc='lower right', shadow=True, fontsize='x-small')
         mplot.grid(True)
         mplot.subplot(212)
-        mplot.plot(self.simulationSignal.sampletime, signalError, 'r-')
+        mplot.plot(self.referenceSignal.sampletime, signalError, 'r-', label='Difference')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
+        mplot.legend(loc='lower right', shadow=True, fontsize='x-small')
         mplot.grid(True)
         mplot.show()
         
@@ -252,11 +262,10 @@ def main(argv):
             smith.plot_outputERA()
         if (option[0]== 'RMSE'):
             smith.analyze_RMSE()
-            
         value= raw_input('\n Do you want to continue (y/n)? ')
         if (value=='n'):
             break
-        
+        print '\n'
 
 if __name__ == '__main__':
     PSSE_PATH= r'C:\\Program Files (x86)\\PTI\\PSSE33\\PSSBIN'

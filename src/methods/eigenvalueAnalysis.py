@@ -8,10 +8,10 @@ import modred as mr
 import numpy as np
 from scipy import linalg
 from data.eradata import DataERA
-from validationMethod import ValidationMethod
+from quantitativeAnalysis import QuantitativeAnalysis
 
     
-class ValidationERA(ValidationMethod):
+class EigenvalueAnalysis(QuantitativeAnalysis):
     '''
     classdocs
     '''
@@ -22,7 +22,7 @@ class ValidationERA(ValidationMethod):
         '''
         Constructor
         '''
-        super(ValidationERA, self).__init__(params)
+        super(EigenvalueAnalysis, self).__init__(params)
         self.__eraresOut= DataERA()
         self.__eraresRef= DataERA()
 

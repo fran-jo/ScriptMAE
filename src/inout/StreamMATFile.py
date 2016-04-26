@@ -91,7 +91,7 @@ class InputMATStream(StreamMATFile):
                           self._resultFile[secondSignal])
         self.__signalData[component]= senyal
             
-        print self.__signalData
+#         print self.__signalData
             
     components = property(get_components, set_components, del_components, "components's docstring")
     variables = property(get_variables, set_variables, del_variables, "variables's docstring")

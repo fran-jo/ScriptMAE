@@ -182,6 +182,7 @@ class InputH5Stream(StreamH5File):
          
     def load_h5Group(self):
         self._group= self._h5file[self._h5file.keys()[0]]
+        self.__datasetList= []
         for name in self._group:
             if (name.find("_values") != -1):
                 self.__datasetList.append(name)

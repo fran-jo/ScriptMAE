@@ -9,7 +9,7 @@ from data import signal
 from validationMethod import ValidationMethod
         
 
-class StatisticalAnalysis(ValidationMethod):
+class StatisticAnalysis(ValidationMethod):
     '''
     classdocs
     '''
@@ -17,7 +17,7 @@ class StatisticalAnalysis(ValidationMethod):
         '''
         Constructor
         '''
-        super(StatisticalAnalysis, self).__init__(params)
+        super(StatisticAnalysis, self).__init__(params)
         
     def qaResampling(self):
         '''
@@ -45,6 +45,7 @@ class StatisticalAnalysis(ValidationMethod):
             'MAE': self.qaMAE,
             'MSE': self.qaMSE,
             'RMSE': self.qaRMSE,
+            'MBD': self.qaMBD,
         }
         # Get the function from switcher dictionary
         func = switcher[parametro]
@@ -68,19 +69,26 @@ class StatisticalAnalysis(ValidationMethod):
     def qaMSE(self):
         arrayRef= np.array(self._signalRef.magnitude)
         arrayOut= np.array(self._signalOut.magnitude)
-        mse= np.mean(np.power(arrayOut - arrayRef, 2))
+        mse= np.mean(np.power(np.subtract(arrayOut, arrayRef), 2))
         arrayRef= arrayOut= None
         return mse
     
     def qaRMSE(self): 
         arrayRef= np.array(self._signalRef.magnitude)
         arrayOut= np.array(self._signalOut.magnitude)
-        rmse= np.sqrt(np.mean(np.power(arrayOut - arrayRef, 2)))
+        rmse= np.sqrt(np.mean(np.power(np.subtract(arrayOut, arrayRef), 2)))
         arrayRef= arrayOut= None
         return rmse
     
+    def qaMBD(self): 
+        arrayRef= np.array(self._signalRef.magnitude)
+        arrayOut= np.array(self._signalOut.magnitude)
+        mbd= np.mean(np.subtract(arrayOut, arrayRef))
+        arrayRef= arrayOut= None
+        return mbd
+    
     def qaSignalError(self):
-        error= np.subtract(np.array(self._signalRef.magnitude), np.array(self._signalOut.magnitude))
+        error= np.subtract(np.array(self._signalOut.magnitude), np.array(self._signalRef.magnitude))
         #TODO error signal must be a new object signal with own sampletime
         return error
     
