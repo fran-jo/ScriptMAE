@@ -65,10 +65,12 @@ class InputOUTStream(StreamOUTFile):
         i= 0
         while (i< len(selectedOutput)):
 #             print selectedOutput[i]
-            cn= selectedOutput[i].split('_')[:-1]
-#             a= cn[0][1:]
-#             b= cn[1][:-1]
-            component= cn[0]+ '_'+ cn[1]
+            cn= selectedOutput[i].split(' ')[2:]
+            a= cn[0][1:]
+            b= cn[1][:-1]
+            component= a+ '_'+ b
+#             cn= selectedOutput[i].split('_')[:-1]
+#             component= cn[0]+ '_'+ cn[1]
             self.__selectedId[component]= (selectedOutput[i], selectedOutput[i+1])
             i= i+ 2
 #         print len(self.__selectedId)

@@ -5,8 +5,8 @@ Created on Sep 03, 2015
 '''
 import sys, os
 from methods.ModeEstimation import ModeEstimation
-from methods.ValidationERA import ValidationERA 
-from methods.ValidationQA import StatisticalAnalysis
+from methods.eigenvalueAnalysis import EigenvalueAnalysis 
+from methods.statisticAnalysis import StatisticAnalysis
 from inout.StreamCSVFile import InputCSVStream
 from inout.StreamH5File import InputH5Stream, OutputH5Stream
 from inout.StreamOUTFile import InputOUTStream
@@ -196,9 +196,7 @@ class ValidationData():
         mplot.show()
 
     def analyze_RMSE(self):
-        qa= StatisticalAnalysis([self.simulationSignal,self.referenceSignal])
-#         qa.signalOut= 
-#         qa.signalRef= 
+        qa= StatisticAnalysis([self.simulationSignal,self.referenceSignal])
         # analysis results to report 
         qa.qaResampling()
         qa.compute_method('MAE')
@@ -208,26 +206,19 @@ class ValidationData():
         qa.compute_method('RMSE') 
         print "RMSE= ", qa.scalarOutput
         qa.compute_method('MBD') 
-        print "MBD= ", qa.scalarOutput
-#         arrayRMSE= qa.qaErrorValidation()
-#         print 'Quantitative Analyisis: Results'
-#         print "MSE= "+ str(arrayRMSE[0])
-#         print "RMSE= "+ str(arrayRMSE[1])
-#         print "MAE= "+ str(arrayRMSE[2])
-#         print "MAPE= "+ str(qa.qaMAPE())
-        # analysis results to plot  
+        print "MBD= ", qa.scalarOutput 
         signalError= qa.qaSignalError()
         mplot.figure(1)
         mplot.subplot(211)
-        mplot.plot(self.simulationSignal.sampletime, self.simulationSignal.magnitude, label='Modelica signal')
-        mplot.plot(self.referenceSignal.sampletime, self.referenceSignal.magnitude, label='Reference signal')
+        mplot.plot(qa.signalOut.sampletime, qa.signalOut.magnitude, label='Modelica signal')
+        mplot.plot(qa.signalRef.sampletime, qa.signalRef.magnitude, label='Reference signal')
         mplot.title('Qualitative Analysis')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
         mplot.legend(loc='lower right', shadow=True, fontsize='x-small')
         mplot.grid(True)
         mplot.subplot(212)
-        mplot.plot(self.referenceSignal.sampletime, signalError, 'r-', label='Difference')
+        mplot.plot(qa.signalRef.sampletime, signalError, 'r-', label='Difference')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
         mplot.legend(loc='lower right', shadow=True, fontsize='x-small')

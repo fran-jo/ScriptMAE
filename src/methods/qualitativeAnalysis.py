@@ -6,10 +6,10 @@ Created on 12 feb 2016
 
 import numpy as np
 from data import signal
-from validationMethod import ValidationMethod
+from quantitativeAnalysis import QuantitativeAnalysis
         
 
-class StatisticAnalysis(ValidationMethod):
+class StatisticAnalysis(QuantitativeAnalysis):
     '''
     classdocs
     '''

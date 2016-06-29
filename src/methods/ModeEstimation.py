@@ -8,13 +8,13 @@ from scipy import signal
 import statsmodels.api as smapi
 import subprocess, os
 # from subprocess import Popen
-from validationMethod import ValidationMethod
+from quantitativeAnalysis import QuantitativeAnalysis
 from inout.StreamH5File import InputH5Stream, OutputH5Stream
 # import win32com.client
 
 # from pymatbridge import Matlab
 
-class ModeEstimation(ValidationMethod):
+class ModeEstimation(QuantitativeAnalysis):
     '''
     classdocs
     '''
