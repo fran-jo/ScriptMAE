@@ -161,7 +161,7 @@ class ValidationData():
         _measSignal as output
         _simSignal as input
         '''
-        self.engineERA= ValidationERA([self.simulationSignal.magnitude,
+        self.engineERA= EigenvalueAnalysis([self.simulationSignal.magnitude,
                                        self.referenceSignal.magnitude])
 #         self.engineERA.signalOut= 
 #         self.engineERA.signalRef= 
