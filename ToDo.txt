@@ -1,7 +1,4 @@
-1) Test method for RMSE
-
-2) Test ERA
-
-3) Test mode estimation
-
+TODO: Incorporar classes PyCIM para guardar datos (MEE classes Measurement)
+TODO: Incorporar classes PyCIM para sacar datos (MAE classes Measurement)
+TODO: Graphicar modes Freq vs Damping
 

@@ -127,7 +127,7 @@ class ValidationData():
 #         self.meEngine.signalRef= 
 #         self.meEngine.signalOut= 
         self.meEngine.save_channelH5()
-        self.meEngine.modeEstimation()
+        self.meEngine.compute_method()
         programPause = raw_input("Press the <ENTER> key to continue...")
         self.meEngine.load_channelH5()
 #         self.meEngine.load_ModeEstimation('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')

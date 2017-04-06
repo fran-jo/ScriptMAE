@@ -30,7 +30,7 @@ class InputMATStream(StreamMATFile):
     __variables= []
     __signalData= {}
     
-    def __init__(self, matfile, compiler= 'omc'):
+    def __init__(self, matfile, compiler= 'openmodelica'):
         super(InputMATStream,self).__init__([matfile, compiler])
         
     def get_signalData(self):
@@ -80,7 +80,7 @@ class InputMATStream(StreamMATFile):
         component
         variables
         '''
-        if self._compiler== 'omc': 
+        if self._compiler== 'openmodelica': 
             nameVarTime= 'time' 
         else: 
             nameVarTime= "Time"

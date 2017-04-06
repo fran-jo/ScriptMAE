@@ -26,7 +26,7 @@ class StreamH5File(object):
     _compiler= ''
     _signals= {}
     
-    def __init__(self, params, compiler='omc'):
+    def __init__(self, params, compiler='openmodelica'):
         '''
         Constructor
         _compiler: omc, dymola or jm
@@ -100,7 +100,7 @@ class StreamH5File(object):
 
     def set_senyal(self, measurement, nameR, nameI):
         ''' set a signal in complex form, real+imaginary '''
-        if self._compiler== 'omc': 
+        if self._compiler== 'openmodelica': 
             nameVarTime= 'time' 
         else: 
             nameVarTime= "Time"

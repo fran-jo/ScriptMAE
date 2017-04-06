@@ -77,7 +77,7 @@ class ModeEstimation(QuantitativeAnalysis):
         channelH5.open_h5('signal_data')
         channelH5.save_channelData(self._signalRef)
         channelH5.save_channelData(self._signalOut)
-        self._mecaguenlaputa= channelH5.group.name
+        self._packageName= channelH5.group.name
         channelH5.close_h5()
         self._h5inputfile= str(channelH5.fileName)
     
@@ -85,8 +85,8 @@ class ModeEstimation(QuantitativeAnalysis):
         # TODO: check cpu time
 #         os.chdir('C:/Users/fragom/PhD_CIM/PYTHON/ScriptMAE/res/matlab')
         os.chdir(self._matlabpath)
-        nameDataRef= self._mecaguenlaputa+ '/'+ self._signalRef.get_component()
-        nameDataSim= self._mecaguenlaputa+ '/'+ self._signalOut.get_component() 
+        nameDataRef= self._packageName+ '/'+ self._signalRef.get_component()
+        nameDataSim= self._packageName+ '/'+ self._signalOut.get_component() 
         scriptme= []
         scriptme.append("clc; close all; clear;\n")
         scriptme.append("dataRef= h5read('"+ str(self._h5inputfile)+ "', '"+
@@ -100,7 +100,7 @@ class ModeEstimation(QuantitativeAnalysis):
         scriptme.append("do= dataSim(1,:);\n")
         scriptme.append("Y= do.';\n")
         scriptme.append("[mode_freq_sim, mode_damp_sim]=mode_est_basic_fcn(Y, order);\n")
-        # TODO me_reference/damp me_reference/freq, me_simulation/damp me_simulation/freq
+        #TODO me_reference/damp me_reference/freq, me_simulation/damp me_simulation/freq
         refFreqName= '/'+ str(self._signalRef.get_component())+ '/freq'
         refDampName= '/'+ str(self._signalRef.get_component())+ '/damp'
         simFreqName= '/'+ str(self._signalOut.get_component())+ '/freq'
