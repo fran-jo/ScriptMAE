@@ -32,6 +32,9 @@ class StreamModeH5(object):
         ''' h5name is name of the model '''
         self.__h5file= h5.File(self.__resfolder+ '/'+ self.__h5namefile, mode)
         self.__gResults= self.__h5file['mode_estimation_res']
+    
+    def close(self):
+        self.__h5file.close()
             
     def select_modes(self, whichsignal):
         ''' build an array of EigenValues '''
@@ -43,6 +46,6 @@ class StreamModeH5(object):
             self.__ddamp= self.__gResults['measurementdamp']
             self.__dfreq= self.__gResults['measurementfreq']
         for vdamp, vfreq in zip(self.__ddamp, self.__dfreq):
-            mode= EigenValue(vdamp,vfreq)
+            mode= EigenValue(vfreq,vdamp)
             modes.append(mode)
         return modes

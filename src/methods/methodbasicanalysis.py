@@ -28,7 +28,7 @@ class MethodAmbientAnalysis(QtCore.QThread):
     def simulationModes(self):
         return self.__simulationModes
     @property
-    def measurementModels(self):
+    def measurementModes(self):
         return self.__measurementModes
 #     @modes.setter
 #     def modes(self, value):
@@ -42,16 +42,19 @@ class MethodAmbientAnalysis(QtCore.QThread):
         self.__toolDir= value 
      
     def run(self):
-        print 'Ambient Mode Analysis'
-        self.__ambientModeAnalysis()
+        print 'log: Ambient Mode Analysis, matlab code'
+        self.__method()
         matlab  = ['matlab']
         options = ['-nosplash', '-wait', '-r']
         command = ["run_mode_estimation"]
         p = Popen(matlab + options + command)
-        stdout, stderr = p.communicate()
+        p_status = p.wait()
+#         stdout, stderr = p.communicate()
+        #This makes the wait possible
+        print "task finished... "
         self.taskFinished.emit()  
 
-    def __ambientModeAnalysis(self):
+    def __method(self):
         os.chdir('./res/matlab')
         scriptme= []
         ''' modify the script with the data to be processed '''
@@ -76,3 +79,4 @@ class MethodAmbientAnalysis(QtCore.QThread):
         dbmode.open()
         self.__simulationModes= dbmode.select_modes('simulation')
         self.__measurementModes= dbmode.select_modes('measurement')
+        dbmode.close()

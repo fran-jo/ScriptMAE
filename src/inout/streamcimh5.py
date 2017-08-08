@@ -43,7 +43,7 @@ class StreamCIMH5(object):
             self.__gmodel= self.__h5file[networkname]
 
     def close(self):
-        pass
+        self.__h5file.close()
     
     def select_AllGroup(self, networkname):
         ''' build a dictionary with the name of the groups '''
@@ -85,8 +85,8 @@ class StreamCIMH5(object):
 #         senyal['unitSymbol']= self.__ganalogMeasurement['unitSymbol']
 #         senyal['unitMultiplier']= self.__ganalogMeasurement['unitMultiplier']
 #         senyal['measurementType']= self.__ganalogMeasurement['measurementType']
-        senyal['sampleTime']= self.__ganalogMeasurement['AnalogValues'][:,0]
-        senyal['magnitude']= self.__ganalogMeasurement['AnalogValues'][:,1]
+        senyal['sampleTime']= self.__ganalogMeasurement['AnalogValue'][:,0]
+        senyal['magnitude']= self.__ganalogMeasurement['AnalogValue'][:,1]
         return senyal
     
     def add_PowerSystemResource(self, resource):
@@ -104,7 +104,7 @@ class StreamCIMH5(object):
         self.__ganalogMeasurement.attrs['measurementType']= measType
         
     def add_AnalogValue (self, sampleTime, measValues):
-        self.__danalogValue= self.__ganalogMeasurement.create_dataset('AnalogValues', 
+        self.__danalogValue= self.__ganalogMeasurement.create_dataset('AnalogValue', 
                                     (len(sampleTime),2), chunks=(100,2))
         self.__danalogValue[:,0]= sampleTime
         self.__danalogValue[:,1]= measValues

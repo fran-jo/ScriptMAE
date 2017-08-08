@@ -21,8 +21,6 @@ class PMUData(object):
         '''
         self.__sourcecsv= InputCSVStream(csvFile, delimiter)
         self.__h5fileName= csvFile.split('/')[-1].split('.')[0]
-        if self.__h5fileName.contains(' '):
-            self.__h5fileName.replace(' ', '_')
         self.__dbh5api= StreamCIMH5('./db/measurements', str(self.__h5fileName))
         
     @property
@@ -40,13 +38,23 @@ class PMUData(object):
         self.__dbh5api.open(self.__h5fileName, 'a')
         for meas in listMeas:
             goodMeasname= str(meas)
+            self.__load_MeasurementValues(goodMeasname)
             resource= goodMeasname.split(separator)[0]
             variable= goodMeasname.split(separator)[1]
-            self.__dbh5api.add_PowerSystemResource(resource)
-            self.__dbh5api.add_AnalogMeasurement(variable, 'unit', 'multiplier', 'type')
-            self.__load_MeasurementValues(goodMeasname)
-            self.__dbh5api.add_AnalogValue(self.__sourcecsv.timestamp2sample(self.__measurement['sampletime']), 
+            if self.__dbh5api.exist_PowerSystemResource(resource):
+                self.__dbh5api.update_PowerSystemResource(resource, resource)
+            else:
+                self.__dbh5api.add_PowerSystemResource(resource)
+            if self.__dbh5api.exist_AnalogMeasurement(variable):
+                self.__dbh5api.update_AnalogMeasurement(variable)
+                self.__dbh5api.update_AnalogValue(variable, 
+                                                  self.__sourcecsv.timestamp2sample(self.__measurement['sampletime']), 
+                                                  self.__measurement['magnitude'])
+            else:
+                self.__dbh5api.add_AnalogMeasurement(variable)
+                self.__dbh5api.add_AnalogValue(self.__sourcecsv.timestamp2sample(self.__measurement['sampletime']), 
                                            self.__measurement['magnitude'])
+        self.__dbh5api.close()
     
     def __store_MeasurementValue(self, meas):
         pass
