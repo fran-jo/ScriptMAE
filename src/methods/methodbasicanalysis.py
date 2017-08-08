@@ -11,22 +11,28 @@ from inout.streammodeh5 import StreamModeH5
 class MethodAmbientAnalysis(QtCore.QThread):
     taskFinished = QtCore.pyqtSignal()
     
-    __signal= []
+    __simulationsSignal= []
+    __measurementSignal= []
     __order= 0
     __toolDir= ''
-    __modes= []
+    __simulationModes= []
+    __measurementModes= []
     
-    def __init__(self, measurementSignal, order= 4, parent= None):
+    def __init__(self, simulationSignal, measurementSignal, order= 4, parent= None):
         QtCore.QThread.__init__(self, parent)
-        self.__signal= measurementSignal
+        self.__simulationsSignal= simulationSignal
+        self.__measurementSignal= measurementSignal
         self.__order= order
        
     @property
-    def modes(self):
-        return self.__modes
-    @modes.setter
-    def modes(self, value):
-        self.__modes= value 
+    def simulationModes(self):
+        return self.__simulationModes
+    @property
+    def measurementModels(self):
+        return self.__measurementModes
+#     @modes.setter
+#     def modes(self, value):
+#         self.__modes= value 
         
     @property
     def toolDir(self):
@@ -52,11 +58,15 @@ class MethodAmbientAnalysis(QtCore.QThread):
         ''' h5file and dataset '''
         scriptme.append("clc; close all; clear;\n")
 #         scriptme.append("data= h5read('"+ str(self.h5simoutput)+ "', '"+  str(self.groupName)+ "/"+ str(self.datasetName)+"');\n")
-        scriptme.append("do= ["+ " ".join(str(value) for value in self.__signal)+ "];\n")
-        scriptme.append("Y= do.';\n")
+        scriptme.append("simusignal= ["+ " ".join(str(value) for value in self.__simulationsSignal)+ "];\n")
+        scriptme.append("simuY= simusignal.';\n")
+        scriptme.append("meassignal= ["+ " ".join(str(value) for value in self.__measurementSignal)+ "];\n")
+        scriptme.append("measY= meassignal.';\n")
         scriptme.append("order= "+ str(self.__order)+ ";\n")
-        scriptme.append("[mode_freq, mode_damp]=mode_est_basic_fcn(Y, order);\n")
-        scriptme.append("hdf5write('mode_estimation_res.h5','/mode_estimation_res/freq', mode_freq,'/mode_estimation_res/damp', mode_damp, '/mode_estimation_res/signal', do);\n")
+        scriptme.append("[mode_freq, mode_damp]= mode_est_basic_fcn(simuY, order);\n")
+        scriptme.append("hdf5write('mode_estimation_res.h5','/mode_estimation_res/signalfreq', mode_freq,'/mode_estimation_res/signaldamp', mode_damp, '/mode_estimation_res/signal', simuY);\n")
+        scriptme.append("[mode_freq, mode_damp]= mode_est_basic_fcn(measY, order);\n")
+        scriptme.append("hdf5write('mode_estimation_res.h5','/mode_estimation_res/measurementfreq', mode_freq,'/mode_estimation_res/measurementdamp', mode_damp, '/mode_estimation_res/measurement', measY,'WriteMode','append');\n")
         scriptme.append("exit\n")
         filefile = open('./run_mode_estimation.m', 'w')
         filefile.writelines(scriptme)
@@ -64,4 +74,5 @@ class MethodAmbientAnalysis(QtCore.QThread):
     def gather_EigenValues(self):
         dbmode= StreamModeH5('./res/matlab', 'mode_estimation_res.h5')
         dbmode.open()
-        self.__modes= dbmode.select_modes()
+        self.__simulationModes= dbmode.select_modes('simulation')
+        self.__measurementModes= dbmode.select_modes('measurement')
