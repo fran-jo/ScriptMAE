@@ -3,7 +3,7 @@ Created on 3 aug. 2017
 
 @author: fragom
 '''
-import os
+import os, platform
 from subprocess import Popen
 from PyQt4 import QtCore
 from inout.streammodeh5 import StreamModeH5
@@ -42,16 +42,16 @@ class MethodAmbientAnalysis(QtCore.QThread):
         self.__toolDir= value 
      
     def run(self):
-        print 'log: Ambient Mode Analysis, matlab code'
-        self.__method()
-        matlab  = ['matlab']
+        self.__ambientModeAnalysis()
+        print 'Ambient Mode Analysis'
+        if os.name== "posix" and platform.system()== "Darwin":
+            matlab= ['/Applications/MATLAB_R2016b.app/bin']
+        elif os.name== 'nt' and platform.system()== 'Windows':
+            matlab  = ['matlab']
         options = ['-nosplash', '-wait', '-r']
         command = ["run_mode_estimation"]
         p = Popen(matlab + options + command)
-        p_status = p.wait()
-#         stdout, stderr = p.communicate()
-        #This makes the wait possible
-        print "task finished... "
+        stdout, stderr = p.communicate()
         self.taskFinished.emit()  
 
     def __method(self):

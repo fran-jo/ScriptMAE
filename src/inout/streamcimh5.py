@@ -9,8 +9,9 @@ import collections
 class StreamCIMH5(object):
     '''
     _h5file file object with reference to the .h5 file
-    _group object to keep in memory a group from the .h5 file
-    cdataset objet to keep in memory the dataset of signals from the .h5 file
+    __gPowerSystemResource object to keep in memory a group from the .h5 file
+    __ganalogMeasurement object to keep in memory a group from the .h5 file
+    __danalogValue objet to keep in memory the dataset of signals from the .h5 file
     '''
     __h5namefile= ''
     __h5file= None
@@ -69,6 +70,7 @@ class StreamCIMH5(object):
             return True
             
     def select_PowerSystemResource(self, resource):
+        ''' TODO: PyCIM classes for PowerSystemsResource '''
         self.__gPowerSystemResource= self.__gmodel[resource]
         return self.__gPowerSystemResource.name
     
@@ -79,7 +81,7 @@ class StreamCIMH5(object):
             return True
     
     def select_AnalogMeasurement(self, variable):
-        ''' TODO use PyCIM classes for Analog and AnalogValue '''
+        '''TODO: use PyCIM classes for Analog and AnalogValue '''
         senyal= {}
         self.__ganalogMeasurement= self.__gPowerSystemResource[variable]
 #         senyal['unitSymbol']= self.__ganalogMeasurement['unitSymbol']
@@ -124,3 +126,5 @@ class StreamCIMH5(object):
         self.__danalogValue= self.__ganalogMeasurement['AnalogValue']
         self.__danalogValue[:,0]= sampleTime
         self.__danalogValue[:,1]= measValues
+
+    ''' TODO: write method, cim file with measurements '''
