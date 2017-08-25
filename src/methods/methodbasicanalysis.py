@@ -30,9 +30,13 @@ class MethodAmbientAnalysis(QtCore.QThread):
     @property
     def measurementModes(self):
         return self.__measurementModes
-#     @modes.setter
-#     def modes(self, value):
-#         self.__modes= value 
+    
+    @property
+    def order(self):
+        return self.__order
+    @order.setter
+    def order(self, value):
+        self.__order= value
         
     @property
     def toolDir(self):
@@ -44,17 +48,17 @@ class MethodAmbientAnalysis(QtCore.QThread):
     def run(self):
         self.__ambientModeAnalysis()
         print 'Ambient Mode Analysis'
-        if os.name== "posix" and platform.system()== "Darwin":
+        if platform.system()== "Darwin":
             matlab= ['/Applications/MATLAB_R2016b.app/bin']
-        elif os.name== 'nt' and platform.system()== 'Windows':
-            matlab  = ['matlab']
+        else: 
+            matlab= ['matlab']
         options = ['-nosplash', '-wait', '-r']
         command = ["run_mode_estimation"]
         p = Popen(matlab + options + command)
         stdout, stderr = p.communicate()
         self.taskFinished.emit()  
 
-    def __method(self):
+    def __ambientModeAnalysis(self):
         os.chdir('./res/matlab')
         scriptme= []
         ''' modify the script with the data to be processed '''
