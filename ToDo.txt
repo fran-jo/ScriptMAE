@@ -1,4 +1,8 @@
-TODO: Incorporar classes PyCIM para guardar datos (MEE classes Measurement)
-TODO: Incorporar classes PyCIM para sacar datos (MAE classes Measurement)
-TODO: Graphicar modes Freq vs Damping
+TODO: script for mode estimation - class with different methods
+TODO: script for eigenvalues with measurements - class wit different methods
+	give option to do analysis with measurements
+	
+TODO: script to import from OUT, CSV (revisar)
+
+TODO: script for quantitative analysis, statistics methods for error, evaluation of error
 

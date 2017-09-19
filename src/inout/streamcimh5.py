@@ -4,11 +4,16 @@ Created on 7 apr 2015
 @author: fragom
 '''
 import h5py as h5
-import collections
 
 class StreamCIMH5(object):
     '''
     _h5file file object with reference to the .h5 file
+    The reason why using CIM on class name is that the database is conceived to work with the same
+    CIM structrue, PowerSystemResource contains Measurement(s) contains MeasurementValue(s). 
+    Even though this class is not using PyCIM, the API to manage the database can be
+    extended to use PyCIM API
+    TODO: Use PyCIM API to handle the values to store in the database
+    TODO: remove the select methods
     __gPowerSystemResource object to keep in memory a group from the .h5 file
     __ganalogMeasurement object to keep in memory a group from the .h5 file
     __danalogValue objet to keep in memory the dataset of signals from the .h5 file
@@ -45,22 +50,9 @@ class StreamCIMH5(object):
 
     def close(self):
         self.__h5file.close()
-    
-    def select_AllGroup(self, networkname):
-        ''' build a dictionary with the name of the groups '''
-        arbol = {}
-        senyals= []
-        for psres in self.__gmodel.keys():
-            self.__gPowerSystemResource= self.__gmodel[psres]
-            for meas in self.__gPowerSystemResource.keys():
-                senyals.append(meas)
-            arbol[psres]= senyals
-            senyals= []
-#         self.__select_iGroups(self.__gmodel, raiz_element, arbol)
-        arbol= collections.OrderedDict(sorted(arbol.items()))
-        return arbol
 
-    def select_Model(self):
+    @property 
+    def model(self):
         return self.__gmodel.name
     
     def exist_PowerSystemResource(self, resource):
@@ -68,28 +60,12 @@ class StreamCIMH5(object):
             return False
         else:
             return True
-            
-    def select_PowerSystemResource(self, resource):
-        ''' TODO: PyCIM classes for PowerSystemsResource '''
-        self.__gPowerSystemResource= self.__gmodel[resource]
-        return self.__gPowerSystemResource.name
     
     def exist_AnalogMeasurement(self, variable):
         if not variable in self.__gPowerSystemResource:
             return False
         else:
             return True
-    
-    def select_AnalogMeasurement(self, variable):
-        '''TODO: use PyCIM classes for Analog and AnalogValue '''
-        senyal= {}
-        self.__ganalogMeasurement= self.__gPowerSystemResource[variable]
-#         senyal['unitSymbol']= self.__ganalogMeasurement['unitSymbol']
-#         senyal['unitMultiplier']= self.__ganalogMeasurement['unitMultiplier']
-#         senyal['measurementType']= self.__ganalogMeasurement['measurementType']
-        senyal['sampleTime']= self.__ganalogMeasurement['AnalogValue'][:,0]
-        senyal['magnitude']= self.__ganalogMeasurement['AnalogValue'][:,1]
-        return senyal
     
     def add_PowerSystemResource(self, resource):
         ''' resource is the name of the component '''
@@ -106,6 +82,7 @@ class StreamCIMH5(object):
         self.__ganalogMeasurement.attrs['measurementType']= measType
         
     def add_AnalogValue (self, sampleTime, measValues):
+        ''' add to the dataset an entire signal (sampletime,magnitude) at once'''
         self.__danalogValue= self.__ganalogMeasurement.create_dataset('AnalogValue', 
                                     (len(sampleTime),2), chunks=(100,2))
         self.__danalogValue[:,0]= sampleTime

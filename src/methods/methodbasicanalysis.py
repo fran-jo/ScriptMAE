@@ -46,12 +46,13 @@ class MethodAmbientAnalysis(QtCore.QThread):
         self.__toolDir= value 
      
     def run(self):
+        print 'vamoh a ejecutah la cosa ehta'
         self.__ambientModeAnalysis()
         print 'Ambient Mode Analysis'
-        if platform.system()== "Darwin":
-            matlab= ['/Applications/MATLAB_R2016b.app/bin']
-        else: 
+        if platform.system()== 'Windows':
             matlab= ['matlab']
+        else: 
+            matlab= ['/Applications/MATLAB_R2016b.app/bin/matlab']
         options = ['-nosplash', '-wait', '-r']
         command = ["run_mode_estimation"]
         p = Popen(matlab + options + command)
