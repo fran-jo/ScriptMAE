@@ -46,7 +46,6 @@ class MethodAmbientAnalysis(QtCore.QThread):
         self.__toolDir= value 
      
     def run(self):
-        print 'vamoh a ejecutah la cosa ehta'
         self.__ambientModeAnalysis()
         print 'Ambient Mode Analysis'
         if platform.system()== 'Windows':
@@ -72,16 +71,21 @@ class MethodAmbientAnalysis(QtCore.QThread):
         scriptme.append("measY= meassignal.';\n")
         scriptme.append("order= "+ str(self.__order)+ ";\n")
         scriptme.append("[mode_freq, mode_damp]= mode_est_basic_fcn(simuY, order);\n")
-        scriptme.append("hdf5write('mode_estimation_res.h5','/mode_estimation_res/signalfreq', mode_freq,'/mode_estimation_res/signaldamp', mode_damp, '/mode_estimation_res/signal', simuY);\n")
+        #scriptme.append("modedataset = {mode_freq, mode_damp};\n")
+        scriptme.append("hdf5write('"+ StreamModeH5.MODE_RESULT_DB+ "',")
+        scriptme.append("'/vedran_method/simulationSignal/signal',simuY,'/vedran_method/simulationSignal/modes', [mode_freq, mode_damp]);\n")
         scriptme.append("[mode_freq, mode_damp]= mode_est_basic_fcn(measY, order);\n")
-        scriptme.append("hdf5write('mode_estimation_res.h5','/mode_estimation_res/measurementfreq', mode_freq,'/mode_estimation_res/measurementdamp', mode_damp, '/mode_estimation_res/measurement', measY,'WriteMode','append');\n")
+        #scriptme.append("modedataset = {mode_freq, mode_damp};\n")
+        scriptme.append("hdf5write('"+ StreamModeH5.MODE_RESULT_DB+ "',")
+        scriptme.append("'/vedran_method/measurementSignal/signal',measY,'/vedran_method/measurementSignal/modes', [mode_freq, mode_damp],'WriteMode','append');\n")
         scriptme.append("exit\n")
         filefile = open('./run_mode_estimation.m', 'w')
         filefile.writelines(scriptme)
         
     def gather_EigenValues(self):
-        dbmode= StreamModeH5('./res/matlab', 'mode_estimation_res.h5')
-        dbmode.open()
+        ''' TODO: factory to get the correspoding method results '''
+        dbmode= StreamModeH5('./res/matlab', StreamModeH5.MODE_RESULT_DB)
+        dbmode.open(StreamModeH5.VEDRAN_METHOD)
         self.__simulationModes= dbmode.select_modes('simulation')
         self.__measurementModes= dbmode.select_modes('measurement')
         dbmode.close()

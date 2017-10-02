@@ -26,22 +26,16 @@ class InputMATStream(StreamMATFile):
     '''
     classdocs
     '''
-    __components= []
+    __components= {} 
     __variables= []
-    __signalData= {}
+    __senyal= {}
     
     def __init__(self, matfile, compiler= 'openmodelica'):
         super(InputMATStream,self).__init__([matfile, compiler])
         
-    def get_signalData(self):
-        return self.__signalData
-
-    def set_signalData(self, value):
-        self.__signalData = value
-
-    def del_signalData(self):
-        del self.__signalData
-
+    @property
+    def senyal(self):
+        return self.__senyal
 
     def get_variables(self):
         return self.__variables
@@ -52,15 +46,9 @@ class InputMATStream(StreamMATFile):
     def del_variables(self):
         del self.__variables
 
-
-    def get_components(self):
+    @property
+    def components(self):
         return self.__components
-
-    def set_components(self, value):
-        self.__components = value
-
-    def del_components(self):
-        del self.__components
         
         
     def load_components(self):
@@ -75,24 +63,19 @@ class InputMATStream(StreamMATFile):
         for component in componentes:
             self.__variables.append(self._resultFile.nametree()[component].keys())
         
-    def load_signals(self, component, variable):
+    def load_signals(self, component, variables):
         '''
-        component
-        variables
+        components, is an array
+        variables, is an array
         '''
         if self._compiler== 'openmodelica': 
             nameVarTime= 'time' 
         else: 
             nameVarTime= "Time"
-        senyal= signal.Signal()
-        firstSignal= component+ '.'+ variable[0]
-        secondSignal= component+ '.'+ variable[1]
-        senyal.set_signal(self._resultFile[nameVarTime], self._resultFile[firstSignal], 
-                          self._resultFile[secondSignal])
-        self.__signalData[component]= senyal
-            
+        self.__senyal['sampletime']= self._resultFile[nameVarTime].times().tolist()
+        for var in variables:
+            variableName= component+ '.'+ var
+            self.__senyal[variableName]= self._resultFile[variableName].values().tolist()
 #         print self.__signalData
             
-    components = property(get_components, set_components, del_components, "components's docstring")
     variables = property(get_variables, set_variables, del_variables, "variables's docstring")
-    signalData = property(get_signalData, set_signalData, del_signalData, "signalData's docstring")

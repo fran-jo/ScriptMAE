@@ -3,92 +3,63 @@ Created on 12 feb 2016
 
 @author: fragom
 '''
+from numpy.random import sample
 
-import numpy as np
-from data import signal
-from quantitativeAnalysis import QuantitativeAnalysis
-        
-
-class StatisticAnalysis(QuantitativeAnalysis):
+class StatisticAnalysis(object):
     '''
     classdocs
     '''
-    def __init__(self, params):
-        '''
-        Constructor
-        '''
-        super(StatisticAnalysis, self).__init__(params)
+    _signalOut= {}
+    _signalRef= {}
+    _scalarOutput= 0
+    _vectorOutput= []
+    
+    def __init__(self, signalOut, signalRef):
+        self._signalOut= signalOut
+        self._signalRef= signalRef
+
+    @property
+    def signalSimulation(self):
+        return self._signalOut
+    @signalSimulation.setter
+    def signalSimulation(self, senyal):
+        self._signalOut= senyal
         
+    @property
+    def signalReference(self):
+        return self._signalRef
+    @signalReference.setter
+    def signalReference(self, senyal):
+        self._signalRef= senyal
+
+    @property
+    def scalarValue(self):
+        return self._scalarOutput
+    @scalarValue.setter
+    def scalarValue(self, valor):
+        self._scalarOutput= valor
+
+    @property
+    def vectorValue(self):
+        return self._vectorOutput
+    @vectorValue.setter
+    def vectorValue(self, valor):
+        self._vectorOutput= valor
+
     def qaResampling(self):
         '''
         basic resampling, based on the signal having less samples, assuming same sample time for each signal
         TODO: apply resampling method
         '''
-        signaltemp= signal.Signal()
-        if self._signalOut.samples< self._signalRef.samples:
-            samplelen= self._signalOut.samples
-            signaltemp.set_signal(self._signalRef.sampletime[0:samplelen], 
-                                  self._signalRef.magnitude[0:samplelen],
-                                  self._signalRef.phase[0:samplelen])
+        signaltemp= self._signalOut
+        self._signalOut['magnitude']
+        samplesOut= len(self._signalOut['magnitude'])
+        samplesRef= len(self._signalRef['magnitude'])
+        if samplesOut< samplesRef:
+            signaltemp['magnitude']= self._signalRef['magnitude'][0:samplesOut]
             self._signalRef= signaltemp
-        if self._signalOut.samples> self._signalRef.samples:
-            samplelen= self._signalRef.samples
-            signaltemp.set_signal(self._signalOut.sampletime[0:samplelen], 
-                                  self._signalOut.magnitude[0:samplelen],
-                                  self._signalOut.phase[0:samplelen])
+        if samplesOut> samplesRef:
+            signaltemp['magnitude']= self._signalOut['magnitude'][0:samplesRef]
             self._signalOut= signaltemp
         
         signaltemp= None
-            
-    def compute_method(self, parametro):
-        switcher = {
-            'MAE': self.qaMAE,
-            'MSE': self.qaMSE,
-            'RMSE': self.qaRMSE,
-            'MBD': self.qaMBD,
-        }
-        # Get the function from switcher dictionary
-        func = switcher[parametro]
-        # Execute the function
-        self._scalarOutput= func()
-    
-    def qaMAPE(self):
-        arrayRef= np.array(self._signalRef.magnitude)
-        arrayOut= np.array(self._signalOut.magnitude)
-        mape= np.mean(np.divide(np.abs(np.subtract(arrayOut,arrayRef)), np.abs(arrayOut)))* 100
-        arrayRef= arrayOut= None
-        return mape
-        
-    def qaMAE(self):
-        arrayRef= np.array(self._signalRef.magnitude)
-        arrayOut= np.array(self._signalOut.magnitude)
-        mae= np.mean(arrayOut - arrayRef)
-        arrayRef= arrayOut= None
-        return mae
-    
-    def qaMSE(self):
-        arrayRef= np.array(self._signalRef.magnitude)
-        arrayOut= np.array(self._signalOut.magnitude)
-        mse= np.mean(np.power(np.subtract(arrayOut, arrayRef), 2))
-        arrayRef= arrayOut= None
-        return mse
-    
-    def qaRMSE(self): 
-        arrayRef= np.array(self._signalRef.magnitude)
-        arrayOut= np.array(self._signalOut.magnitude)
-        rmse= np.sqrt(np.mean(np.power(np.subtract(arrayOut, arrayRef), 2)))
-        arrayRef= arrayOut= None
-        return rmse
-    
-    def qaMBD(self): 
-        arrayRef= np.array(self._signalRef.magnitude)
-        arrayOut= np.array(self._signalOut.magnitude)
-        mbd= np.mean(np.subtract(arrayOut, arrayRef))
-        arrayRef= arrayOut= None
-        return mbd
-    
-    def qaSignalError(self):
-        error= np.subtract(np.array(self._signalOut.magnitude), np.array(self._signalRef.magnitude))
-        #TODO error signal must be a new object signal with own sampletime
-        return error
-    

@@ -20,11 +20,7 @@ class StreamH5CIM(object):
     __internalModel= {}
     __internalMeasurement= {}
     '''create a dictionary with id,class as elements '''
-
-    @property
-    def internalModel(self):
-        return self.__internalModel
-
+    
     def __init__(self, dbpath= '', network= ''):
         '''
         Constructor
@@ -40,10 +36,10 @@ class StreamH5CIM(object):
     def open(self, networkname= '', mode= 'r'):
         ''' h5name is name of the model '''
         if '.' in networkname:
-            networkname= networkname.split('.')[0]
+            self.__networkname= networkname.split('.')[0]
         self.__h5file= h5.File(self.__h5namefile, mode)
-        if networkname in self.__h5file:
-            self.__gmodel= self.__h5file[networkname]
+        if self.__networkname in self.__h5file:
+            self.__gmodel= self.__h5file[self.__networkname]
 
     def close(self):
         self.__h5file.close()
@@ -51,6 +47,32 @@ class StreamH5CIM(object):
     @property 
     def modelName(self):
         return self.__gmodel.name
+    
+    @property
+    def analogMeasurement(self):
+        return self.__ganalogMeasurement.name
+    
+    @property
+    def analogMeasurementValues(self):
+        return self.__internalMeasurement
+    
+    @property
+    def internalModel(self):
+        return self.__internalModel
+
+    @property
+    def networkName(self):
+        return self.__networkname
+    
+    def select_arrayMeasurements(self, networkname):
+        ''' network name is the name of the h5 file '''
+        signalNames= []
+        for psres in self.__gmodel.keys():
+            self.__gPowerSystemResource= self.__gmodel[psres]
+            for meas in self.__gPowerSystemResource.keys():
+                signalFullName= psres+ '.'+ meas
+                signalNames.append(signalFullName)
+        return signalNames
     
     def select_treeMeasurements(self, networkname):
         ''' build a dictionary with the name of the groups '''
@@ -117,12 +139,4 @@ class StreamH5CIM(object):
 #         senyal['measurementType']= self.__ganalogMeasurement['measurementType']
         self.__internalMeasurement['sampleTime']= self.__ganalogMeasurement['AnalogValue'][:,0]
         self.__internalMeasurement['magnitude']= self.__ganalogMeasurement['AnalogValue'][:,1]
-    
-    @property
-    def analogMeasurement(self):
-        return self.__ganalogMeasurement.name
-    
-    @property
-    def analogMeasurementValues(self):
-        return self.__internalMeasurement
     
