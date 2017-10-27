@@ -4,7 +4,7 @@ Created on 7 apr 2015
 @author: fragom
 '''
 import h5py as h5
-from data.EigenValue import EigenValue
+from domain.EigenValue import EigenValue
 import numpy
 
 class StreamModeH5(object):

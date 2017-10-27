@@ -1,7 +1,0 @@
-.csv
-./res/matlab/PMUdata_Bus1VA2VALoad9PQ.csv
-,
-
-psse
-"C:/Program Files (x86)/PTI/PSSE33/PSSBIN"
-./res/psse/out_9bus_2.out

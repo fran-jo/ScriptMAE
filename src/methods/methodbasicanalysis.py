@@ -13,6 +13,7 @@ class MethodAmbientAnalysis(QtCore.QThread):
     
     __simulationsSignal= []
     __measurementSignal= []
+    __compareWithMeasurements= False
     __order= 0
     __toolDir= ''
     __simulationModes= []
@@ -20,9 +21,12 @@ class MethodAmbientAnalysis(QtCore.QThread):
     
     def __init__(self, simulationSignal, measurementSignal, order= 4, parent= None):
         QtCore.QThread.__init__(self, parent)
-        self.__simulationsSignal= simulationSignal
-        self.__measurementSignal= measurementSignal
+        self.__simulationsSignal= simulationSignal['magnitude']
+        if not measurementSignal== {}:
+            self.__measurementSignal= measurementSignal['magnitude']
+            self.__compareWithMeasurements= True
         self.__order= order
+        self.__toolDir= os.getcwd()
        
     @property
     def simulationModes(self):
@@ -74,10 +78,11 @@ class MethodAmbientAnalysis(QtCore.QThread):
         #scriptme.append("modedataset = {mode_freq, mode_damp};\n")
         scriptme.append("hdf5write('"+ StreamModeH5.MODE_RESULT_DB+ "',")
         scriptme.append("'/vedran_method/simulationSignal/signal',simuY,'/vedran_method/simulationSignal/modes', [mode_freq, mode_damp]);\n")
-        scriptme.append("[mode_freq, mode_damp]= mode_est_basic_fcn(measY, order);\n")
-        #scriptme.append("modedataset = {mode_freq, mode_damp};\n")
-        scriptme.append("hdf5write('"+ StreamModeH5.MODE_RESULT_DB+ "',")
-        scriptme.append("'/vedran_method/measurementSignal/signal',measY,'/vedran_method/measurementSignal/modes', [mode_freq, mode_damp],'WriteMode','append');\n")
+        if self.__compareWithMeasurements:
+            scriptme.append("[mode_freq, mode_damp]= mode_est_basic_fcn(measY, order);\n")
+            #scriptme.append("modedataset = {mode_freq, mode_damp};\n")
+            scriptme.append("hdf5write('"+ StreamModeH5.MODE_RESULT_DB+ "',")
+            scriptme.append("'/vedran_method/measurementSignal/signal',measY,'/vedran_method/measurementSignal/modes', [mode_freq, mode_damp],'WriteMode','append');\n")
         scriptme.append("exit\n")
         filefile = open('./run_mode_estimation.m', 'w')
         filefile.writelines(scriptme)
@@ -87,5 +92,6 @@ class MethodAmbientAnalysis(QtCore.QThread):
         dbmode= StreamModeH5('./res/matlab', StreamModeH5.MODE_RESULT_DB)
         dbmode.open(StreamModeH5.VEDRAN_METHOD)
         self.__simulationModes= dbmode.select_modes('simulation')
-        self.__measurementModes= dbmode.select_modes('measurement')
+        if self.__compareWithMeasurements:
+            self.__measurementModes= dbmode.select_modes('measurement')
         dbmode.close()

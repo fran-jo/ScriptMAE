@@ -16,7 +16,8 @@ class StatisticAnalysis(object):
     
     def __init__(self, signalOut, signalRef):
         self._signalOut= signalOut
-        self._signalRef= signalRef
+        if not signalRef== '' or not signalRef== []:
+            self._signalRef= signalRef
 
     @property
     def signalSimulation(self):

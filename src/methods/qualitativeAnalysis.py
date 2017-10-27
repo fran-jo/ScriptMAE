@@ -4,7 +4,6 @@ Created on 12 feb 2016
 @author: fragom
 '''
 
-from data import signal
 import numpy as np
 import matplotlib.pyplot as mplot
 from statisticAnalysis import StatisticAnalysis
@@ -40,6 +39,18 @@ class QualitativeAnalysis(StatisticAnalysis):
         mplot.grid(True)
         mplot.subplot(212)
         mplot.plot(self._signalRef['sampleTime'], errorSignal, 'r-', label='Difference')
+        mplot.xlabel('Time (s)')
+        mplot.ylabel('Value')
+        mplot.legend(loc='lower right', shadow=True, fontsize='x-small')
+        mplot.grid(True)
+        mplot.show()
+        
+    def signal_plot(self):
+        mplot.figure(1)
+        mplot.plot(self._signalOut['sampleTime'], self._signalOut['magnitude'], label='Simulation signal')
+        if not self._signalRef== {}:
+            mplot.plot(self._signalRef['sampleTime'], self._signalRef['magnitude'], label='Reference signal')
+        mplot.title('Qualitative Analysis')
         mplot.xlabel('Time (s)')
         mplot.ylabel('Value')
         mplot.legend(loc='lower right', shadow=True, fontsize='x-small')

@@ -6,6 +6,7 @@ Created on 3 aug. 2017
 import os, sys
 from methods import MethodAmbientAnalysis
 from inout.streamh5cim import StreamH5CIM
+from methods.qualitativeAnalysis import QualitativeAnalysis
 
 # Analysis Engine Methods
 class AmbientAnalysis(object):
@@ -50,10 +51,13 @@ class AmbientAnalysis(object):
         arrayQualquiera= self.__simulationdb.select_arrayMeasurements(self.__simulationdb.networkName)
         seleccion= self.selectData(arrayQualquiera, 'Select a signal: ')
         ''' only allow one value selected '''
-        [componentName, variableName]= seleccion[0].split('.')
+        names= seleccion[0].split('.')
+        componentName= names[0]
+        variableName= '.'.join(names[1:]) if len(names)> 2 else names[1]
+#         [componentName, variableName]= seleccion[0].split('.')
         self.__simulationdb.select_PowerSystemResource(componentName)
         self.__simulationdb.select_AnalogMeasurement(variableName)
-        self.__simulationSignal= self.__simulationdb.analogMeasurementValues['magnitude']
+        self.__simulationSignal= self.__simulationdb.analogMeasurementValues
         if not measurementdb== None:
             arrayQualquiera= self.__measurementdb.select_arrayMeasurements(self.__measurementdb.networkName)
             seleccion= self.selectData(arrayQualquiera, 'Select a signal: ')
@@ -61,12 +65,14 @@ class AmbientAnalysis(object):
             [componentName, variableName]= seleccion[0].split('.')
             self.__measurementdb.select_PowerSystemResource(componentName)
             self.__measurementdb.select_AnalogMeasurement(variableName)
-            self.__measurementSignal= self.__measurementdb.analogMeasurementValues['magnitude']
+            self.__measurementSignal= self.__measurementdb.analogMeasurementValues
+        else:
+            self.__measurementSignal= {}
         ''' return '''
         return [self.__simulationSignal, self.__measurementSignal]
         
-    def onStart_basicMethod(self, simulationSignal, measurementSignal= []):
-        self.__analysisTask = MethodAmbientAnalysis(simulationSignal, measurementSignal)
+    def onStart_basicMethod(self, simulationSignal, order, measurementSignal= {}):
+        self.__analysisTask = MethodAmbientAnalysis(simulationSignal,measurementSignal, order)
         self.__analysisTask.toolDir= os.getcwd()
         self.__analysisTask.taskFinished.connect(self.onFinish_basicMethod)
         self.__analysisTask.start()
@@ -75,20 +81,26 @@ class AmbientAnalysis(object):
     def onFinish_basicMethod(self, compareWithMeasurements= False):
         os.chdir(self.__analysisTask.toolDir)
         self.__analysisTask.gather_EigenValues()
+        print 'Modes from Simulation'
         for mode in self.__analysisTask.simulationModes:
-            print str(mode.real), ', j'+ str(mode.imag)
+            print 'frequency: %s; damping: %s'%(str(mode.real), str(mode.imag))
+        print 'Modes from Measurements'
         if compareWithMeasurements:
             for mode in self.__analysisTask.measurementModes:
-                print str(mode.real), ', j'+ str(mode.imag)
+                print 'frequency: %s; damping: %s'%(str(mode.real), str(mode.imag))
         
 if __name__ == '__main__':
     analysisapi= AmbientAnalysis()
-    if sys.argv[2]== '':
-        compareWithMeasurements= False
+    if len(sys.argv)<= 3:
+        [simulationTable, measurementTable]= analysisapi.open_database(sys.argv[1], '')
+        [simulationSignal, measurementSignal]= analysisapi.select_Signals(simulationTable, measurementTable)
+        analysisapi.onStart_basicMethod(simulationSignal, sys.argv[2], measurementSignal)
+        analysisapi.onFinish_basicMethod(False)
     else:
-        compareWithMeasurements= True
-    [simulationTable, measurementTable]= analysisapi.open_database(sys.argv[1], sys.argv[2])
-    [simulationSignal, measurementSignal]= analysisapi.select_Signals(simulationTable, measurementTable)
-    analysisapi.onStart_basicMethod(simulationSignal, measurementSignal)
-    analysisapi.onFinish_basicMethod(compareWithMeasurements)
+        [simulationTable, measurementTable]= analysisapi.open_database(sys.argv[1], sys.argv[3])
+        [simulationSignal, measurementSignal]= analysisapi.select_Signals(simulationTable, measurementTable)
+        analysisapi.onStart_basicMethod(sys.argv[2], simulationSignal, measurementSignal)
+        analysisapi.onFinish_basicMethod(True)
+    quala= QualitativeAnalysis(simulationSignal, measurementSignal)
+    quala.signal_plot()
     

@@ -34,16 +34,27 @@ def mat_to_h5(matFile='.mat', compiler= 'openmodelica'):
     sourcemat= InputMATStream(matFile, compiler)
     networkname= matFile.split('.')[1].split('/')[-1]
     h5name= networkname + '.h5'
-    dbh5= StreamCIMH5('./db/measurements', h5name)
+    dbh5= StreamCIMH5('./db/simulation', h5name)
     dbh5.open(h5name, 'w')
     sourcemat.load_components()
     componentsName= selectData(sourcemat.components, 'Select which component data to import: ')
     sourcemat.load_variables(componentsName)
     componentsSignals= zip(componentsName,sourcemat.variables)
     for componentname, componentSignal in componentsSignals:
-        variablesName= selectData(componentSignal, 'Select which signals from components to import: ')
+        newVariablesName= []
+        variablesName= selectData(componentSignal, 'Select which signals from '+ componentname+ ' to import: ')
         # TODO supose user only select 2 variabler per component, what if selects more?
-        sourcemat.load_signals(componentname, variablesName)
+        try:
+            sourcemat.load_signals(componentname, variablesName)
+        except LookupError:
+            for variablename in variablesName:
+                sourcemat.load_subvariables(componentname, variablename)
+                subvariableNames= selectData(sourcemat.variables, 
+                                             'Select which signals from '+ componentname+'.'+variablename+' to import: ')
+                for subvariablename in subvariableNames:
+                    newVariablesName.append(variablename+ '.'+ subvariablename)
+            variablesName= newVariablesName
+            sourcemat.load_signals(componentname, variablesName)
         if not dbh5.exist_PowerSystemResource(componentname):
             dbh5.add_PowerSystemResource(componentname)
         else:
@@ -58,6 +69,7 @@ def mat_to_h5(matFile='.mat', compiler= 'openmodelica'):
                 dbh5.update_AnalogMeasurement(variable)
                 dbh5.update_AnalogValue(variable,sourcemat.senyal['sampletime'], 
                                      sourcemat.senyal[paramName])
+        sourcemat.clear_signals()
     dbh5.close()
 
 if __name__ == '__main__':  

@@ -5,7 +5,6 @@ Created on 28 jan 2016
 '''
 
 from modelicares import SimRes
-from data import signal
 
 class StreamMATFile(object):
     '''
@@ -63,6 +62,14 @@ class InputMATStream(StreamMATFile):
         for component in componentes:
             self.__variables.append(self._resultFile.nametree()[component].keys())
         
+    def load_subvariables(self, component, variable):
+        '''
+        component
+        variables
+        '''
+        idx= self._resultFile.nametree()[component].keys().index(variable)
+        self.__variables= self._resultFile.nametree()[component].values()[idx].keys()
+        
     def load_signals(self, component, variables):
         '''
         components, is an array
@@ -78,4 +85,7 @@ class InputMATStream(StreamMATFile):
             self.__senyal[variableName]= self._resultFile[variableName].values().tolist()
 #         print self.__signalData
             
+    def clear_signals(self):
+        self.__senyal= {}
+    
     variables = property(get_variables, set_variables, del_variables, "variables's docstring")
