@@ -2,7 +2,6 @@
 .pydevproject
 *.csv
 *.pyc
-*.h5
 
 *.class
 *.jar
