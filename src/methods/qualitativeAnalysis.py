@@ -28,6 +28,7 @@ class QualitativeAnalysis(StatisticAnalysis):
     def error_plot(self):
         errorSignal= self.__signalError(self._signalOut['magnitude'], 
                                         self._signalRef['magnitude'])
+        mplot.style.use('ggplot')
         mplot.figure(1)
         mplot.subplot(211)
         mplot.plot(self._signalOut['sampleTime'], self._signalOut['magnitude'], label='Simulation signal')
@@ -46,6 +47,7 @@ class QualitativeAnalysis(StatisticAnalysis):
         mplot.show()
         
     def signal_plot(self):
+        mplot.style.use('ggplot')
         mplot.figure(1)
         mplot.plot(self._signalOut['sampleTime'], self._signalOut['magnitude'], label='Simulation signal')
         if not self._signalRef== {}:
