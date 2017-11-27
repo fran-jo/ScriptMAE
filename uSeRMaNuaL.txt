@@ -1,4 +1,5 @@
-The project contains different scripts to handel different functionalities
+
+The project contains different scripts to handle different functionalities
 1) for signal analysis and model analysis
 2) for importing data from different sources
 3) for statistical analysis
@@ -31,7 +32,7 @@ Unrecognized MATLAB option "wait".
                    R2016b (9.1.0.441655) 64-bit (maci64)
                              September 7, 2016
 ...
-Once the mehtod finishes, the resulting modes are presented in the screen and a figures pops up, with the plot
+Once the method finishes, the resulting modes are presented in the screen and a figures pops up, with the plot
 of the selected signal.
 Modes from Simulation
 frequency: 1.31679628403e-06; damping: -1.0
